@@ -1,3 +1,5 @@
+use crossterm::style::Color as CtColor;
+
 /// Colors
 ///
 /// Here we define multiple defaults, or you can use your own RGB value
@@ -22,6 +24,30 @@ pub enum Color {
     BrightWhite,
     Rgb(u8, u8, u8),
     Indexed(u8),
+}
+
+pub fn to_ct_color(c: Color) -> CtColor {
+    match c {
+        Color::Reset        => CtColor::Reset,
+        Color::Black        => CtColor::Black,
+        Color::Red          => CtColor::DarkRed,
+        Color::Green        => CtColor::DarkGreen,
+        Color::Yellow       => CtColor::DarkYellow,
+        Color::Blue         => CtColor::DarkBlue,
+        Color::Magenta      => CtColor::DarkMagenta,
+        Color::Cyan         => CtColor::DarkCyan,
+        Color::White        => CtColor::Grey,
+        Color::BrightBlack  => CtColor::DarkGrey,
+        Color::BrightRed    => CtColor::Red,
+        Color::BrightGreen  => CtColor::Green,
+        Color::BrightYellow => CtColor::Yellow,
+        Color::BrightBlue   => CtColor::Blue,
+        Color::BrightMagenta=> CtColor::Magenta,
+        Color::BrightCyan   => CtColor::Cyan,
+        Color::BrightWhite  => CtColor::White,
+        Color::Rgb(r, g, b) => CtColor::Rgb { r, g, b },
+        Color::Indexed(i)   => CtColor::AnsiValue(i),
+    }
 }
 
 /// Text appearance applied to a cell or [`Span`].

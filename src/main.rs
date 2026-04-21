@@ -1,23 +1,27 @@
-use crate::terminal::Terminal;
 use std::thread;
 use std::time::Duration;
-
-mod command;
-mod terminal;
+use terminal_display::{Constraint, Terminal, Text, VStack, boxed};
 
 fn main() {
-    let terminal = Terminal::new();
+    let terminal = Terminal::new().expect("failed to init terminal");
     let handle = terminal.run();
 
-    let mut x = 0;
-    let mut y = 100;
+    let mut cpu = 0u32;
+    let mut mem = 100u32;
 
     loop {
-        handle.set_line(0, format!("stat1: {}", x));
-        handle.set_line(1, format!("stat2: {}", y));
+        handle.render(move |frame| {
+            frame.render(
+                VStack::new(vec![
+                    (Constraint::Fixed(1), boxed(Text::raw(format!("CPU: {}%", cpu)))),
+                    (Constraint::Fixed(1), boxed(Text::raw(format!("MEM: {}%", mem)))),
+                ]),
+                frame.area(),
+            );
+        });
 
-        x += 1;
-        y -= 1;
+        cpu += 1;
+        mem = mem.saturating_sub(1);
 
         thread::sleep(Duration::from_millis(500));
     }

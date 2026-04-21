@@ -1,81 +1,148 @@
-use crate::command::Command;
-use crossterm::cursor::MoveTo;
-use crossterm::execute;
-use crossterm::terminal::{Clear, ClearType};
-use std::io::{Write, stdout};
+use std::io::{stdout, Write};
 use std::sync::mpsc;
 use std::thread;
+use crossterm::cursor::{Hide, MoveTo, Show};
+use crossterm::execute;
+use crossterm::style::{Attribute, Print, ResetColor, SetAttribute, SetBackgroundColor, SetForegroundColor};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
+use crate::buffer::{Buffer, Cell};
+use crate::geometry::Rect;
+use crate::style::Color;
+use crate::widget::Widget;
+
+enum Command {
+    Render(Box<dyn FnOnce(&mut Frame) + Send>),
+    Shutdown,
+}
+
+pub struct Frame {
+    area: Rect,
+    buffer: Buffer,
+}
+
+impl Frame {
+    pub(crate) fn new(area: Rect) -> Self {
+        Frame { area, buffer: Buffer::empty(area) }
+    }
+
+    pub fn area(&self) -> Rect {
+        self.area
+    }
+
+    pub fn render(&mut self, widget: impl Widget, area: Rect) {
+        widget.render(area, &mut self.buffer);
+    }
+
+    pub(crate) fn buffer(&self) -> &Buffer {
+        &self.buffer
+    }
+
+    pub(crate) fn into_buffer(self) -> Buffer {
+        self.buffer
+    }
+}
 
 pub struct Terminal {
-    lines: Vec<String>,
-    prev_lines: Vec<String>,
+    area: Rect,
 }
 
 impl Terminal {
-    pub fn new() -> Terminal {
-        Terminal {
-            lines: Vec::default(),
-            prev_lines: Vec::default(),
-        }
-    }
-
-    fn set_line(&mut self, index: usize, content: impl Into<String>) {
-        if index >= self.lines.len() {
-            self.lines.resize(index + 1, String::new());
-        }
-        self.lines[index] = content.into();
-    }
-
-    fn clear(&mut self) {
-        self.lines.clear();
-    }
-
-    fn render(&mut self) -> std::io::Result<()> {
-        let mut stdout = stdout();
-
-        for (i, line) in self.lines.iter().enumerate() {
-            if self.prev_lines.get(i) != Some(line) {
-                execute!(stdout, MoveTo(0, i as u16), Clear(ClearType::CurrentLine))?;
-                print!("{}", line);
+    pub fn new() -> std::io::Result<Terminal> {
+        let (width, height) = crossterm::terminal::size()?;
+        enable_raw_mode()?;
+        execute!(
+            stdout(),
+            EnterAlternateScreen,
+            Hide
+        )?;
+        Ok(
+            Terminal {
+                area: Rect { x: 0, y: 0, width: width, height: height },
             }
-        }
-
-        // If we previously had MORE lines, clear the leftovers
-        if self.prev_lines.len() > self.lines.len() {
-            for i in self.lines.len()..self.prev_lines.len() {
-                execute!(stdout, MoveTo(0, i as u16), Clear(ClearType::CurrentLine))?;
-            }
-        }
-
-        self.prev_lines = self.lines.clone();
-        stdout.flush()?;
-
-        Ok(())
+        )
     }
 
     pub fn run(self) -> TerminalHandle {
-        let (tx, rx) = mpsc::channel();
+        let area = self.area;
+        let (tx, rx) = mpsc::channel::<Command>();
 
         thread::spawn(move || {
-            let mut terminal = self;
+            let mut prev = Buffer::empty(area);
 
-            while let Ok(cmd) = rx.recv() {
-                match cmd {
-                    Command::SetLine(i, content) => {
-                        terminal.set_line(i, content);
-                    }
-                    Command::Clear => {
-                        terminal.clear();
-                    }
+            while let Ok(command) = rx.recv() {
+                match command {
+                    Command::Render(func) => {
+                        let mut frame = Frame::new(area);
+                        func(&mut frame);
+                        let curr = frame.into_buffer();
+                        render_diff(&curr, &mut prev).unwrap();
+                        prev = curr;
+                    },
                     Command::Shutdown => break,
                 }
-
-                // Render AFTER handling updates
-                terminal.render().unwrap();
             }
+            let _ = execute!(stdout(), LeaveAlternateScreen, Show);
+            let _ = disable_raw_mode();
         });
 
         TerminalHandle { tx }
+    }
+}
+
+fn render_diff(curr: &Buffer, prev: &Buffer) -> std::io::Result<()> {
+    let mut out = stdout();
+    for (x, y, cell) in curr.diff(prev).unwrap() {
+        execute!(out, MoveTo(x, y))?;
+        apply_style(&cell, &mut out)?;
+        execute!(out, Print(cell.ch))?;
+    }
+    execute!(out, ResetColor)?;
+    out.flush()?;
+    Ok(())
+}
+
+fn apply_style(cell: &Cell, out: &mut impl Write) -> std::io::Result<()> {
+    execute!(out, ResetColor)?;
+    if let Some(fg) = cell.style.fg {
+        execute!(out, SetForegroundColor(to_ct_color(fg)))?;
+    }
+    if let Some(bg) = cell.style.bg {
+        execute!(out, SetBackgroundColor(to_ct_color(bg)))?;
+    }
+    if cell.style.bold {
+        execute!(out, SetAttribute(Attribute::Bold))?;
+    }
+    if cell.style.underline {
+        execute!(out, SetAttribute(Attribute::Underlined))?;
+    }
+    if cell.style.italic {
+        execute!(out, SetAttribute(Attribute::Italic))?;
+    }
+    Ok(())
+}
+
+fn to_ct_color(c: Color) -> crossterm::style::Color {
+    use crossterm::style::Color as C;
+    match c {
+        Color::Reset         => C::Reset,
+        Color::Black         => C::Black,
+        Color::Red           => C::DarkRed,
+        Color::Green         => C::DarkGreen,
+        Color::Yellow        => C::DarkYellow,
+        Color::Blue          => C::DarkBlue,
+        Color::Magenta       => C::DarkMagenta,
+        Color::Cyan          => C::DarkCyan,
+        Color::White         => C::Grey,
+        Color::BrightBlack   => C::DarkGrey,
+        Color::BrightRed     => C::Red,
+        Color::BrightGreen   => C::Green,
+        Color::BrightYellow  => C::Yellow,
+        Color::BrightBlue    => C::Blue,
+        Color::BrightMagenta => C::Magenta,
+        Color::BrightCyan    => C::Cyan,
+        Color::BrightWhite   => C::White,
+        Color::Rgb(r, g, b)  => C::Rgb { r, g, b },
+        Color::Indexed(i)    => C::AnsiValue(i),
     }
 }
 
@@ -84,15 +151,46 @@ pub struct TerminalHandle {
 }
 
 impl TerminalHandle {
-    pub fn set_line(&self, index: usize, content: impl Into<String>) {
-        let _ = self.tx.send(Command::SetLine(index, content.into()));
-    }
-
-    pub fn clear(&self) {
-        let _ = self.tx.send(Command::Clear);
+    pub fn render(&self, f: impl FnOnce(&mut Frame) + Send + 'static) {
+        let _ = self.tx.send(Command::Render(Box::new(f)));
     }
 
     pub fn shutdown(&self) {
         let _ = self.tx.send(Command::Shutdown);
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geometry::Rect;
+    use crate::style::Style;
+    use crate::widget::text::Text;
+
+    #[test]
+    fn frame_area_matches_constructed_size() {
+        let area = Rect { x: 0, y: 0, width: 80, height: 24 };
+        let frame = Frame::new(area);
+        assert_eq!(frame.area(), area);
+    }
+
+    #[test]
+    fn frame_render_writes_widget_into_buffer() {
+        let area = Rect { x: 0, y: 0, width: 10, height: 1 };
+        let mut frame = Frame::new(area);
+        frame.render(Text::raw("hello"), area);
+        assert_eq!(frame.buffer().get_cell(0, 0).unwrap().ch, 'h');
+    }
+
+    #[test]
+    fn diff_detects_changed_cells() {
+        let area = Rect { x: 0, y: 0, width: 5, height: 1 };
+        let prev = crate::buffer::Buffer::empty(area);
+        let mut curr = crate::buffer::Buffer::empty(area);
+        curr.set_str(0, 0, "hi", Style::default());
+        let diffs = curr.diff(&prev).unwrap();
+        assert_eq!(diffs.len(), 2);
+        assert_eq!(diffs[0].2.ch, 'h');
     }
 }
