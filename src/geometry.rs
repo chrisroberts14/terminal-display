@@ -1,5 +1,3 @@
-use std::cmp::min;
-
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Rect {
     pub x: u16,
@@ -9,21 +7,19 @@ pub struct Rect {
 }
 
 impl Rect {
-    pub fn area(&self) -> u16 {
-        self.width * self.height
+    pub fn area(&self) -> u32 {
+        self.width as u32 * self.height as u32
     }
 
     /// Shrink the Rect by `margin` on all four sides
     ///
     /// Clamps to zero
     pub fn inner(self, margin: u16) -> Rect {
-        let dx = margin.min(self.width / 2);
-        let dy = margin.max(self.height / 2);
         Rect {
-            x: self.x + dx,
-            y: self.y + dy,
-            width: self.width.saturating_sub(dx * 2),
-            height: self.height.saturating_sub(dy * 2),
+            x: self.x + margin.min(self.width),
+            y: self.y + margin.min(self.height),
+            width: self.width.saturating_sub(margin.saturating_mul(2)),
+            height: self.height.saturating_sub(margin.saturating_mul(2)),
         }
     }
 }
