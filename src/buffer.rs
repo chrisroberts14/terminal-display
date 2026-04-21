@@ -55,8 +55,7 @@ impl Buffer {
     /// Returns the cell at absolute terminal position `(x, y)`.
     /// Returns `None` cell if the position is outside `self.area`.
     pub fn get_cell(&self, x: u16, y: u16) -> Option<Cell> {
-        self.index(x, y)
-            .map(|index| self.cells[index].clone())
+        self.index(x, y).map(|index| self.cells[index].clone())
     }
 
     /// Writes `cell` to absolute terminal position `(x, y)`.
