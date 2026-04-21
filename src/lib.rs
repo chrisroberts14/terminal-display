@@ -3,6 +3,7 @@
 pub mod buffer;
 pub mod geometry;
 pub mod layout;
+mod macros;
 pub mod style;
 pub mod terminal;
 pub mod widget;
