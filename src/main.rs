@@ -1,6 +1,8 @@
 use std::thread;
 use std::time::Duration;
-use terminal_display::{Block, Color, HStack, Terminal, Text, VStack, WidgetExt, span, style};
+use terminal_display::{
+    Block, Bordered, Color, HStack, Terminal, Text, VStack, WidgetExt, span, style,
+};
 
 fn main() {
     let terminal = Terminal::new().expect("failed to init terminal");
@@ -17,20 +19,30 @@ fn main() {
             frame.render(block, area);
             frame.render(
                 HStack::new(vec![
-                    VStack::new(vec![
-                        Text::raw(format!("CPU: {}%", cpu)).fixed(1),
-                        Text::from(vec![
-                            span!("MEM: "),
-                            span!(format!("{}%", mem), style!(fg = Color::Red)),
-                        ]).fixed(1),
-                    ]).fill(),
-                    VStack::new(vec![
-                        Text::raw(format!("CPU: {}%", cpu)).fixed(1),
-                        Text::from(vec![
-                            span!("MEM: "),
-                            span!(format!("{}%", mem), style!(fg = Color::Blue)),
-                        ]).fixed(1),
-                    ]).fill(),
+                    Bordered {
+                        block: Block::new().title("Core 0"),
+                        child: VStack::new(vec![
+                            Text::raw(format!("CPU: {}%", cpu)).fixed(1),
+                            Text::from(vec![
+                                span!("MEM: "),
+                                span!(format!("{}%", mem), style!(fg = Color::Red)),
+                            ])
+                            .fixed(1),
+                        ]),
+                    }
+                    .fill(),
+                    Bordered {
+                        block: Block::new().title("Core 1"),
+                        child: VStack::new(vec![
+                            Text::raw(format!("CPU: {}%", cpu)).fixed(1),
+                            Text::from(vec![
+                                span!("MEM: "),
+                                span!(format!("{}%", mem), style!(fg = Color::Blue)),
+                            ])
+                            .fixed(1),
+                        ]),
+                    }
+                    .fill(),
                 ]),
                 inner,
             );

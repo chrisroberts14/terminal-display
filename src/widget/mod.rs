@@ -3,10 +3,12 @@ use crate::geometry::Rect;
 use crate::layout::Constraint;
 
 pub mod block;
+pub mod bordered;
 pub mod stack;
 pub mod text;
 
 pub use block::Block;
+pub use bordered::Bordered;
 pub use stack::{BoxedWidget, HStack, VStack, boxed};
 pub use text::Text;
 

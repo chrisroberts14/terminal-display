@@ -101,7 +101,12 @@ mod tests {
         use crate::geometry::Rect;
         use crate::widget::Widget;
 
-        let area = Rect { x: 0, y: 0, width: 6, height: 1 };
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 6,
+            height: 1,
+        };
         let mut buf = Buffer::empty(area);
         hstack!["ab", "cd"].render(area, &mut buf);
         // each Fill column gets 3 chars: "ab " and "cd "
