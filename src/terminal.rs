@@ -8,14 +8,16 @@ use crossterm::style::{
     Attribute, Print, ResetColor, SetAttribute, SetBackgroundColor, SetForegroundColor,
 };
 use crossterm::terminal::{
-    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
+    Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
 use std::io::{Write, stdout};
 use std::sync::mpsc;
 use std::thread;
+use crossterm::event::Event;
 
 enum Command {
     Render(Box<dyn FnOnce(&mut Frame) + Send>),
+    Resize(u16, u16),
     Shutdown,
 }
 
@@ -71,8 +73,10 @@ impl Terminal {
     pub fn run(self) -> TerminalHandle {
         let area = self.area;
         let (tx, rx) = mpsc::channel::<Command>();
+        let event_tx = tx.clone();
 
         thread::spawn(move || {
+            let mut area = area;
             let mut prev = Buffer::empty(area);
 
             while let Ok(command) = rx.recv() {
@@ -81,14 +85,27 @@ impl Terminal {
                         let mut frame = Frame::new(area);
                         func(&mut frame);
                         let curr = frame.into_buffer();
-                        render_diff(&curr, &mut prev).unwrap();
+                        render_diff(&curr, &prev).unwrap();
                         prev = curr;
+                    }
+                    Command::Resize(w, h) => {
+                        area = Rect { x: 0, y: 0, width: w, height: h };
+                        prev = Buffer::empty(area);
+                        let _ = execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0));
                     }
                     Command::Shutdown => break,
                 }
             }
             let _ = execute!(stdout(), LeaveAlternateScreen, Show);
             let _ = disable_raw_mode();
+        });
+
+        thread::spawn(move || {
+            loop {
+                if let Ok(Event::Resize(w, h)) = crossterm::event::read() {
+                    let _ = event_tx.send(Command::Resize(w, h));
+                }
+            }
         });
 
         TerminalHandle { tx }
