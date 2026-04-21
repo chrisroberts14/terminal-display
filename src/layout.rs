@@ -37,7 +37,13 @@ pub fn solve(constraints: &[Constraint], total: u16) -> Vec<u16> {
         let mut extra = remaining % fill_count;
         for (i, c) in constraints.iter().enumerate() {
             if matches!(c, Constraint::Fill) {
-                sizes[i] = per_fill + if extra > 0 { extra -= 1; 1 } else { 0 };
+                sizes[i] = per_fill
+                    + if extra > 0 {
+                        extra -= 1;
+                        1
+                    } else {
+                        0
+                    };
             }
         }
     }
@@ -58,7 +64,10 @@ mod tests {
     #[test]
     fn fill_splits_remaining_equally() {
         // 20 - 4 fixed = 16 remaining, split between 2 Fill → 8 each
-        let sizes = solve(&[Constraint::Fixed(4), Constraint::Fill, Constraint::Fill], 20);
+        let sizes = solve(
+            &[Constraint::Fixed(4), Constraint::Fill, Constraint::Fill],
+            20,
+        );
         assert_eq!(sizes, vec![4, 8, 8]);
     }
 
@@ -79,7 +88,10 @@ mod tests {
     #[test]
     fn mixed_fixed_and_fill() {
         // 5 + Fill + 3 in 20 → Fill gets 20 - 5 - 3 = 12
-        let sizes = solve(&[Constraint::Fixed(5), Constraint::Fill, Constraint::Fixed(3)], 20);
+        let sizes = solve(
+            &[Constraint::Fixed(5), Constraint::Fill, Constraint::Fixed(3)],
+            20,
+        );
         assert_eq!(sizes, vec![5, 12, 3]);
     }
 }
