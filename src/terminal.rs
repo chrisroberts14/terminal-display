@@ -1,9 +1,9 @@
+use crate::command::Command;
 use crossterm::cursor::MoveTo;
 use crossterm::execute;
 use crossterm::terminal::{Clear, ClearType};
-use std::io::{stdout, Write};
+use std::io::{Write, stdout};
 use std::sync::mpsc;
-use crate::command::Command;
 use std::thread;
 
 pub struct Terminal {
@@ -35,11 +35,7 @@ impl Terminal {
 
         for (i, line) in self.lines.iter().enumerate() {
             if self.prev_lines.get(i) != Some(line) {
-                execute!(
-                    stdout,
-                    MoveTo(0, i as u16),
-                    Clear(ClearType::CurrentLine)
-                )?;
+                execute!(stdout, MoveTo(0, i as u16), Clear(ClearType::CurrentLine))?;
                 print!("{}", line);
             }
         }
@@ -47,11 +43,7 @@ impl Terminal {
         // If we previously had MORE lines, clear the leftovers
         if self.prev_lines.len() > self.lines.len() {
             for i in self.lines.len()..self.prev_lines.len() {
-                execute!(
-                    stdout,
-                    MoveTo(0, i as u16),
-                    Clear(ClearType::CurrentLine)
-                )?;
+                execute!(stdout, MoveTo(0, i as u16), Clear(ClearType::CurrentLine))?;
             }
         }
 

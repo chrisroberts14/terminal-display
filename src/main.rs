@@ -1,9 +1,9 @@
+use crate::terminal::Terminal;
 use std::thread;
 use std::time::Duration;
-use crate::terminal::Terminal;
 
-mod terminal;
 mod command;
+mod terminal;
 
 fn main() {
     let terminal = Terminal::new();

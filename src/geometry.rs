@@ -1,3 +1,5 @@
+//! Geometry for the terminal display
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Rect {
     pub x: u16,
@@ -30,25 +32,61 @@ mod tests {
 
     #[test]
     fn rect_area() {
-        let r = Rect { x: 0, y: 0, width: 10, height: 5 };
+        let r = Rect {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 5,
+        };
         assert_eq!(r.area(), 50);
     }
 
     #[test]
     fn rect_zero_area() {
-        let r = Rect { x: 5, y: 5, width: 0, height: 10 };
+        let r = Rect {
+            x: 5,
+            y: 5,
+            width: 0,
+            height: 10,
+        };
         assert_eq!(r.area(), 0);
     }
 
     #[test]
     fn rect_inner_shrinks_by_margin() {
-        let r = Rect { x: 0, y: 0, width: 10, height: 6 };
-        assert_eq!(r.inner(1), Rect { x: 1, y: 1, width: 8, height: 4 });
+        let r = Rect {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 6,
+        };
+        assert_eq!(
+            r.inner(1),
+            Rect {
+                x: 1,
+                y: 1,
+                width: 8,
+                height: 4
+            }
+        );
     }
 
     #[test]
     fn rect_inner_clamps_when_too_small() {
-        let r = Rect { x: 0, y: 0, width: 1, height: 1 };
-        assert_eq!(r.inner(1), Rect { x: 1, y: 1, width: 0, height: 0 });
+        let r = Rect {
+            x: 0,
+            y: 0,
+            width: 1,
+            height: 1,
+        };
+        assert_eq!(
+            r.inner(1),
+            Rect {
+                x: 1,
+                y: 1,
+                width: 0,
+                height: 0
+            }
+        );
     }
 }
