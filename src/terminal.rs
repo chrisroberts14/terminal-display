@@ -62,8 +62,8 @@ impl Terminal {
             area: Rect {
                 x: 0,
                 y: 0,
-                width: width,
-                height: height,
+                width,
+                height,
             },
         })
     }

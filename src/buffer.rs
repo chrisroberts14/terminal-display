@@ -89,7 +89,7 @@ impl Buffer {
                     let prev_cell = prev.cells.get(i)?;
                     if cell != prev_cell {
                         let x = self.area.x + (i as u16 % self.area.width);
-                        let y = self.area.y + (i as u16 % self.area.height);
+                        let y = self.area.y + (i as u16 / self.area.width);
                         Some((x, y, cell.clone()))
                     } else {
                         None
