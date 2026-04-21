@@ -1,6 +1,6 @@
 use std::thread;
 use std::time::Duration;
-use terminal_display::{span, style, Block, Color, Constraint, Terminal, Text, VStack, boxed};
+use terminal_display::{Block, Color, Constraint, Terminal, Text, VStack, boxed, span, style};
 
 fn main() {
     let terminal = Terminal::new().expect("failed to init terminal");
@@ -17,11 +17,17 @@ fn main() {
             frame.render(block, area);
             frame.render(
                 VStack::new(vec![
-                    (Constraint::Fixed(1), boxed(Text::raw(format!("CPU: {}%", cpu)))),
-                    (Constraint::Fixed(1), boxed(Text::from(vec![
-                        span!("MEM: "),
-                        span!(format!("{}%", mem), style!(fg = Color::Red)),
-                    ]))),
+                    (
+                        Constraint::Fixed(1),
+                        boxed(Text::raw(format!("CPU: {}%", cpu))),
+                    ),
+                    (
+                        Constraint::Fixed(1),
+                        boxed(Text::from(vec![
+                            span!("MEM: "),
+                            span!(format!("{}%", mem), style!(fg = Color::Red)),
+                        ])),
+                    ),
                 ]),
                 inner,
             );

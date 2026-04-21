@@ -3,6 +3,7 @@ use crate::geometry::Rect;
 use crate::style::Color;
 use crate::widget::Widget;
 use crossterm::cursor::{Hide, MoveTo, Show};
+use crossterm::event::Event;
 use crossterm::execute;
 use crossterm::style::{
     Attribute, Print, ResetColor, SetAttribute, SetBackgroundColor, SetForegroundColor,
@@ -13,7 +14,6 @@ use crossterm::terminal::{
 use std::io::{Write, stdout};
 use std::sync::mpsc;
 use std::thread;
-use crossterm::event::Event;
 
 enum Command {
     Render(Box<dyn FnOnce(&mut Frame) + Send>),
@@ -89,7 +89,12 @@ impl Terminal {
                         prev = curr;
                     }
                     Command::Resize(w, h) => {
-                        area = Rect { x: 0, y: 0, width: w, height: h };
+                        area = Rect {
+                            x: 0,
+                            y: 0,
+                            width: w,
+                            height: h,
+                        };
                         prev = Buffer::empty(area);
                         let _ = execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0));
                     }
