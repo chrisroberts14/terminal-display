@@ -1,9 +1,11 @@
 use crate::buffer::Buffer;
 use crate::geometry::Rect;
 
-mod stack;
+pub mod stack;
 pub mod text;
+pub mod block;
 
+pub use block::Block;
 pub use stack::{BoxedWidget, HStack, VStack, boxed};
 pub use text::Text;
 
