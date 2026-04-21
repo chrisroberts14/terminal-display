@@ -13,8 +13,14 @@ fn main() {
         handle.render(move |frame| {
             frame.render(
                 VStack::new(vec![
-                    (Constraint::Fixed(1), boxed(Text::raw(format!("CPU: {}%", cpu)))),
-                    (Constraint::Fixed(1), boxed(Text::raw(format!("MEM: {}%", mem)))),
+                    (
+                        Constraint::Fixed(1),
+                        boxed(Text::raw(format!("CPU: {}%", cpu))),
+                    ),
+                    (
+                        Constraint::Fixed(1),
+                        boxed(Text::raw(format!("MEM: {}%", mem))),
+                    ),
                 ]),
                 frame.area(),
             );

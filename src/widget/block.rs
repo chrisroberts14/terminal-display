@@ -7,7 +7,10 @@ pub struct Block {
 
 impl Block {
     pub fn new() -> Self {
-        Block { title: None, border_style: Style::default() }
+        Block {
+            title: None,
+            border_style: Style::default(),
+        }
     }
 
     pub fn title(mut self, title: impl Into<String>) -> Self {
@@ -60,7 +63,9 @@ impl Widget for Block {
         if let Some(title) = self.title {
             for (i, ch) in title.chars().enumerate() {
                 let x = x0 + 1 + i as u16;
-                if x >= x1 { break; }
+                if x >= x1 {
+                    break;
+                }
                 buf.set_cell(x, y0, Cell { ch, style });
             }
         }
@@ -75,7 +80,12 @@ mod tests {
     use crate::widget::Widget;
 
     fn area(w: u16, h: u16) -> Rect {
-        Rect { x: 0, y: 0, width: w, height: h }
+        Rect {
+            x: 0,
+            y: 0,
+            width: w,
+            height: h,
+        }
     }
 
     #[test]
@@ -118,6 +128,14 @@ mod tests {
     #[test]
     fn inner_shrinks_by_one_on_all_sides() {
         let inner = Block::new().inner(area(10, 6));
-        assert_eq!(inner, Rect { x: 1, y: 1, width: 8, height: 4 });
+        assert_eq!(
+            inner,
+            Rect {
+                x: 1,
+                y: 1,
+                width: 8,
+                height: 4
+            }
+        );
     }
 }

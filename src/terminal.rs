@@ -1,14 +1,18 @@
-use std::io::{stdout, Write};
-use std::sync::mpsc;
-use std::thread;
-use crossterm::cursor::{Hide, MoveTo, Show};
-use crossterm::execute;
-use crossterm::style::{Attribute, Print, ResetColor, SetAttribute, SetBackgroundColor, SetForegroundColor};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
 use crate::buffer::{Buffer, Cell};
 use crate::geometry::Rect;
 use crate::style::Color;
 use crate::widget::Widget;
+use crossterm::cursor::{Hide, MoveTo, Show};
+use crossterm::execute;
+use crossterm::style::{
+    Attribute, Print, ResetColor, SetAttribute, SetBackgroundColor, SetForegroundColor,
+};
+use crossterm::terminal::{
+    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
+};
+use std::io::{Write, stdout};
+use std::sync::mpsc;
+use std::thread;
 
 enum Command {
     Render(Box<dyn FnOnce(&mut Frame) + Send>),
@@ -22,7 +26,10 @@ pub struct Frame {
 
 impl Frame {
     pub(crate) fn new(area: Rect) -> Self {
-        Frame { area, buffer: Buffer::empty(area) }
+        Frame {
+            area,
+            buffer: Buffer::empty(area),
+        }
     }
 
     pub fn area(&self) -> Rect {
@@ -50,16 +57,15 @@ impl Terminal {
     pub fn new() -> std::io::Result<Terminal> {
         let (width, height) = crossterm::terminal::size()?;
         enable_raw_mode()?;
-        execute!(
-            stdout(),
-            EnterAlternateScreen,
-            Hide
-        )?;
-        Ok(
-            Terminal {
-                area: Rect { x: 0, y: 0, width: width, height: height },
-            }
-        )
+        execute!(stdout(), EnterAlternateScreen, Hide)?;
+        Ok(Terminal {
+            area: Rect {
+                x: 0,
+                y: 0,
+                width: width,
+                height: height,
+            },
+        })
     }
 
     pub fn run(self) -> TerminalHandle {
@@ -77,7 +83,7 @@ impl Terminal {
                         let curr = frame.into_buffer();
                         render_diff(&curr, &mut prev).unwrap();
                         prev = curr;
-                    },
+                    }
                     Command::Shutdown => break,
                 }
             }
@@ -124,25 +130,25 @@ fn apply_style(cell: &Cell, out: &mut impl Write) -> std::io::Result<()> {
 fn to_ct_color(c: Color) -> crossterm::style::Color {
     use crossterm::style::Color as C;
     match c {
-        Color::Reset         => C::Reset,
-        Color::Black         => C::Black,
-        Color::Red           => C::DarkRed,
-        Color::Green         => C::DarkGreen,
-        Color::Yellow        => C::DarkYellow,
-        Color::Blue          => C::DarkBlue,
-        Color::Magenta       => C::DarkMagenta,
-        Color::Cyan          => C::DarkCyan,
-        Color::White         => C::Grey,
-        Color::BrightBlack   => C::DarkGrey,
-        Color::BrightRed     => C::Red,
-        Color::BrightGreen   => C::Green,
-        Color::BrightYellow  => C::Yellow,
-        Color::BrightBlue    => C::Blue,
+        Color::Reset => C::Reset,
+        Color::Black => C::Black,
+        Color::Red => C::DarkRed,
+        Color::Green => C::DarkGreen,
+        Color::Yellow => C::DarkYellow,
+        Color::Blue => C::DarkBlue,
+        Color::Magenta => C::DarkMagenta,
+        Color::Cyan => C::DarkCyan,
+        Color::White => C::Grey,
+        Color::BrightBlack => C::DarkGrey,
+        Color::BrightRed => C::Red,
+        Color::BrightGreen => C::Green,
+        Color::BrightYellow => C::Yellow,
+        Color::BrightBlue => C::Blue,
         Color::BrightMagenta => C::Magenta,
-        Color::BrightCyan    => C::Cyan,
-        Color::BrightWhite   => C::White,
-        Color::Rgb(r, g, b)  => C::Rgb { r, g, b },
-        Color::Indexed(i)    => C::AnsiValue(i),
+        Color::BrightCyan => C::Cyan,
+        Color::BrightWhite => C::White,
+        Color::Rgb(r, g, b) => C::Rgb { r, g, b },
+        Color::Indexed(i) => C::AnsiValue(i),
     }
 }
 
@@ -160,7 +166,6 @@ impl TerminalHandle {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,14 +175,24 @@ mod tests {
 
     #[test]
     fn frame_area_matches_constructed_size() {
-        let area = Rect { x: 0, y: 0, width: 80, height: 24 };
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 80,
+            height: 24,
+        };
         let frame = Frame::new(area);
         assert_eq!(frame.area(), area);
     }
 
     #[test]
     fn frame_render_writes_widget_into_buffer() {
-        let area = Rect { x: 0, y: 0, width: 10, height: 1 };
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 1,
+        };
         let mut frame = Frame::new(area);
         frame.render(Text::raw("hello"), area);
         assert_eq!(frame.buffer().get_cell(0, 0).unwrap().ch, 'h');
@@ -185,7 +200,12 @@ mod tests {
 
     #[test]
     fn diff_detects_changed_cells() {
-        let area = Rect { x: 0, y: 0, width: 5, height: 1 };
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 5,
+            height: 1,
+        };
         let prev = crate::buffer::Buffer::empty(area);
         let mut curr = crate::buffer::Buffer::empty(area);
         curr.set_str(0, 0, "hi", Style::default());

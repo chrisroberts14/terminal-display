@@ -12,4 +12,4 @@ pub use geometry::Rect;
 pub use layout::Constraint;
 pub use style::{Color, Span, Style};
 pub use terminal::{Frame, Terminal, TerminalHandle};
-pub use widget::{boxed, Block, BoxedWidget, HStack, Text, VStack, Widget};
+pub use widget::{Block, BoxedWidget, HStack, Text, VStack, Widget, boxed};
