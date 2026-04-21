@@ -21,6 +21,11 @@ enum Command {
     Shutdown,
 }
 
+/// A single-frame rendering context passed to the closure in [`TerminalHandle::render`].
+///
+/// Call [`Frame::render`] one or more times to draw widgets, then return from the closure.
+/// The runtime diffs the resulting buffer against the previous frame and writes only
+/// changed cells to stdout.
 pub struct Frame {
     area: Rect,
     buffer: Buffer,
@@ -34,10 +39,16 @@ impl Frame {
         }
     }
 
+    /// Returns the full terminal area available for this frame.
     pub fn area(&self) -> Rect {
         self.area
     }
 
+    /// Renders `widget` into `area`, writing its cells into this frame's buffer.
+    ///
+    /// Widgets that draw outside `area` are clipped. Call this multiple times to layer
+    /// widgets — for example, render a [`Block`](crate::widget::Block) border first, then
+    /// render content into its inner area.
     pub fn render(&mut self, widget: impl Widget, area: Rect) {
         widget.render(area, &mut self.buffer);
     }
@@ -51,11 +62,17 @@ impl Frame {
     }
 }
 
+/// Owns the terminal for its lifetime and spawns the render and event threads.
+///
+/// Create with [`Terminal::new`], then immediately call [`Terminal::run`] to transfer
+/// ownership to the background threads and receive a [`TerminalHandle`].
 pub struct Terminal {
     area: Rect,
 }
 
 impl Terminal {
+    /// Initialises the terminal: enables raw mode, enters the alternate screen, and hides
+    /// the cursor. Returns an error if the terminal cannot be configured.
     pub fn new() -> std::io::Result<Terminal> {
         let (width, height) = crossterm::terminal::size()?;
         enable_raw_mode()?;
@@ -70,6 +87,14 @@ impl Terminal {
         })
     }
 
+    /// Moves the terminal into a background render thread and returns a [`TerminalHandle`].
+    ///
+    /// Two threads are spawned:
+    /// - **Render thread** — receives render closures and resize commands, diffs each
+    ///   frame against the previous one, and writes only changed cells to stdout.
+    /// - **Event thread** — blocks on crossterm events and forwards terminal resize
+    ///   events to the render thread, which clears the screen and updates the frame area.
+    ///   Note: Any other events can be added here
     pub fn run(self) -> TerminalHandle {
         let area = self.area;
         let (tx, rx) = mpsc::channel::<Command>();
@@ -174,15 +199,27 @@ fn to_ct_color(c: Color) -> crossterm::style::Color {
     }
 }
 
+/// A cheaply cloneable handle to the background render thread.
+///
+/// Obtained by calling [`Terminal::run`]. Send render closures with [`TerminalHandle::render`]
+/// from any thread. Each closure receives a [`Frame`] and should call [`Frame::render`]
+/// to draw widgets before returning.
 pub struct TerminalHandle {
     tx: mpsc::Sender<Command>,
 }
 
 impl TerminalHandle {
+    /// Submits a render closure to the background thread.
+    ///
+    /// The closure receives a [`Frame`] sized to the current terminal dimensions.
+    /// It is executed on the render thread, so captured values must be `Send + 'static`.
     pub fn render(&self, f: impl FnOnce(&mut Frame) + Send + 'static) {
         let _ = self.tx.send(Command::Render(Box::new(f)));
     }
 
+    /// Signals the render thread to restore the terminal and exit.
+    ///
+    /// After calling this, further `render` calls are silently ignored.
     pub fn shutdown(&self) {
         let _ = self.tx.send(Command::Shutdown);
     }
@@ -228,8 +265,8 @@ mod tests {
             width: 5,
             height: 1,
         };
-        let prev = crate::buffer::Buffer::empty(area);
-        let mut curr = crate::buffer::Buffer::empty(area);
+        let prev = Buffer::empty(area);
+        let mut curr = Buffer::empty(area);
         curr.set_str(0, 0, "hi", Style::default());
         let diffs = curr.diff(&prev).unwrap();
         assert_eq!(diffs.len(), 2);
