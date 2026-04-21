@@ -47,6 +47,16 @@ macro_rules! vstack {
     };
 }
 
+/// Builds an `HStack` of plain-text columns, each taking an equal share of the available width.
+#[macro_export]
+macro_rules! hstack {
+    ($($col:expr),* $(,)?) => {
+        $crate::HStack::new(vec![
+            $(($crate::Constraint::Fill, $crate::boxed($crate::Text::raw($col)))),*
+        ])
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use crate::style::{Color, Style};
@@ -83,5 +93,19 @@ mod tests {
     fn span_macro_styled() {
         let s = span!("hi", style!(fg = Color::Green));
         assert_eq!(s.style.fg, Some(Color::Green));
+    }
+
+    #[test]
+    fn hstack_macro_creates_fill_columns() {
+        use crate::buffer::Buffer;
+        use crate::geometry::Rect;
+        use crate::widget::Widget;
+
+        let area = Rect { x: 0, y: 0, width: 6, height: 1 };
+        let mut buf = Buffer::empty(area);
+        hstack!["ab", "cd"].render(area, &mut buf);
+        // each Fill column gets 3 chars: "ab " and "cd "
+        assert_eq!(buf.get_cell(0, 0).unwrap().ch, 'a');
+        assert_eq!(buf.get_cell(3, 0).unwrap().ch, 'c');
     }
 }
