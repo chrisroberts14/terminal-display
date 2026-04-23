@@ -5,6 +5,12 @@ pub struct Block {
     border_style: Style,
 }
 
+impl Default for Block {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Block {
     pub fn new() -> Self {
         Block {

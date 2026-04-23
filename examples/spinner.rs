@@ -3,7 +3,7 @@
 use std::thread;
 use std::time::Duration;
 use terminal_display::{
-    Block, Bordered, Color, HStack, Spinner, SpinnerStyle, Style, Terminal, WidgetExt, style,
+    Block, Bordered, Color, HStack, Spinner, SpinnerStyle, Terminal, WidgetExt, style,
 };
 
 fn main() {
