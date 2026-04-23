@@ -61,3 +61,52 @@ impl Widget for Spinner {
         Text::from(vec![span]).render(area, buf);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::buffer::Buffer;
+    use crate::geometry::Rect;
+    use crate::style::Style;
+
+    fn rect(w: u16, h: u16) -> Rect {
+        Rect {
+            x: 0,
+            y: 0,
+            width: w,
+            height: h,
+        }
+    }
+
+    #[test]
+    fn renders_a_frame_character_from_dots() {
+        let mut buf = Buffer::empty(rect(1, 1));
+        Spinner::new(SpinnerStyle::Dots, Style::default()).render(rect(1, 1), &mut buf);
+        let ch = buf.get_cell(0, 0).unwrap().ch;
+        let valid: Vec<char> = SpinnerStyle::Dots
+            .frames()
+            .iter()
+            .flat_map(|s| s.chars())
+            .collect();
+        assert!(valid.contains(&ch), "unexpected char: {ch}");
+    }
+
+    #[test]
+    fn all_styles_render_without_panic() {
+        for style in [SpinnerStyle::Dots, SpinnerStyle::Line, SpinnerStyle::Arc] {
+            let mut buf = Buffer::empty(rect(2, 1));
+            Spinner::new(style, Style::default()).render(rect(2, 1), &mut buf);
+        }
+    }
+
+    #[test]
+    fn style_is_applied_to_rendered_cell() {
+        let bold = Style {
+            bold: true,
+            ..Style::default()
+        };
+        let mut buf = Buffer::empty(rect(1, 1));
+        Spinner::new(SpinnerStyle::Line, bold).render(rect(1, 1), &mut buf);
+        assert!(buf.get_cell(0, 0).unwrap().style.bold);
+    }
+}
