@@ -4,6 +4,7 @@ pub mod buffer;
 pub mod geometry;
 pub mod layout;
 mod macros;
+pub mod progress;
 pub mod style;
 pub mod terminal;
 pub mod widget;
@@ -11,9 +12,10 @@ pub mod widget;
 pub use buffer::{Buffer, Cell};
 pub use geometry::Rect;
 pub use layout::Constraint;
+pub use progress::ProgressExt;
 pub use style::{Color, Span, Style};
 pub use terminal::{Frame, Terminal, TerminalHandle};
 pub use widget::{
-    Block, Bordered, BoxedWidget, Divider, HStack, Spinner, SpinnerStyle, Text, VStack, Widget,
-    WidgetExt, boxed,
+    Block, Bordered, BoxedWidget, Divider, HStack, ProgressBar, Spinner, SpinnerStyle, Text,
+    VStack, Widget, WidgetExt, boxed,
 };
