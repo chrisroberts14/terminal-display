@@ -4,12 +4,14 @@ use crate::layout::Constraint;
 
 pub mod block;
 pub mod bordered;
+pub mod divider;
 pub mod spinner;
 pub mod stack;
 pub mod text;
 
 pub use block::Block;
 pub use bordered::Bordered;
+pub use divider::Divider;
 pub use spinner::{Spinner, SpinnerStyle};
 pub use stack::{BoxedWidget, HStack, VStack, boxed};
 pub use text::Text;

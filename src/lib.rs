@@ -14,6 +14,6 @@ pub use layout::Constraint;
 pub use style::{Color, Span, Style};
 pub use terminal::{Frame, Terminal, TerminalHandle};
 pub use widget::{
-    Block, Bordered, BoxedWidget, HStack, Spinner, SpinnerStyle, Text, VStack, Widget, WidgetExt,
-    boxed,
+    Block, Bordered, BoxedWidget, Divider, HStack, Spinner, SpinnerStyle, Text, VStack, Widget,
+    WidgetExt, boxed,
 };
