@@ -2,7 +2,9 @@
 
 use std::thread;
 use std::time::Duration;
-use terminal_display::{Block, Bordered, HStack, Spinner, SpinnerStyle, Terminal, WidgetExt};
+use terminal_display::{
+    Block, Bordered, Color, HStack, Spinner, SpinnerStyle, Style, Terminal, WidgetExt, style,
+};
 
 fn main() {
     let terminal = Terminal::new().expect("failed to init terminal");
@@ -16,17 +18,17 @@ fn main() {
             HStack::new(vec![
                 Bordered {
                     block: Block::new().title("Dots"),
-                    child: Spinner::new(SpinnerStyle::Dots),
+                    child: Spinner::new(SpinnerStyle::Dots, style!(bold)),
                 }
                 .fill(),
                 Bordered {
                     block: Block::new().title("Line"),
-                    child: Spinner::new(SpinnerStyle::Line),
+                    child: Spinner::new(SpinnerStyle::Line, style!(fg = Color::Green)),
                 }
                 .fill(),
                 Bordered {
                     block: Block::new().title("Arc"),
-                    child: Spinner::new(SpinnerStyle::Arc),
+                    child: Spinner::new(SpinnerStyle::Arc, style!(bg = Color::Red)),
                 }
                 .fill(),
             ]),
