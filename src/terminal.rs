@@ -107,7 +107,12 @@ impl Terminal {
                 match cmd {
                     Command::Render(f) => current_fn = Some(f),
                     Command::Resize(w, h) => {
-                        area = Rect { x: 0, y: 0, width: w, height: h };
+                        area = Rect {
+                            x: 0,
+                            y: 0,
+                            width: w,
+                            height: h,
+                        };
                         prev = Buffer::empty(area);
                         let _ = execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0));
                     }
