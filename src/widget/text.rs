@@ -16,7 +16,7 @@ impl Text {
 }
 
 impl Widget for Text {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&self, area: Rect, buf: &mut Buffer) {
         let mut x = area.x;
         'outer: for span in &self.spans {
             for ch in span.content.chars() {

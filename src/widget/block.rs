@@ -35,7 +35,7 @@ impl Block {
 }
 
 impl Widget for Block {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&self, area: Rect, buf: &mut Buffer) {
         if area.width < 2 || area.height < 2 {
             return;
         }
@@ -60,7 +60,7 @@ impl Widget for Block {
             buf.set_cell(x1, y, Cell { ch: '│', style });
         }
 
-        if let Some(title) = self.title {
+        if let Some(title) = self.title.as_deref() {
             for (i, ch) in title.chars().enumerate() {
                 let x = x0 + 1 + i as u16;
                 if x >= x1 {

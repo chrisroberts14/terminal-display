@@ -14,12 +14,14 @@ use crossterm::terminal::{
 use std::io::{Write, stdout};
 use std::sync::{Arc, mpsc};
 use std::thread;
+use std::time::Duration;
 
 type RenderFn = Arc<dyn Fn(&mut Frame) + Send + Sync>;
 
 enum Command {
     Render(RenderFn),
     Resize(u16, u16),
+    Tick,
     Shutdown,
 }
 
@@ -116,6 +118,7 @@ impl Terminal {
                         prev = Buffer::empty(area);
                         let _ = execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0));
                     }
+                    Command::Tick => {}
                     Command::Shutdown => break 'outer,
                 }
                 if let Some(f) = &current_fn {
@@ -217,6 +220,7 @@ fn to_ct_color(c: Color) -> crossterm::style::Color {
 /// Obtained by calling [`Terminal::run`]. Send render closures with [`TerminalHandle::render`]
 /// from any thread. Each closure receives a [`Frame`] and should call [`Frame::render`]
 /// to draw widgets before returning.
+#[derive(Clone)]
 pub struct TerminalHandle {
     tx: mpsc::Sender<Command>,
 }
@@ -229,6 +233,20 @@ impl TerminalHandle {
     /// in the caller. Calling `render` again replaces the closure and triggers a redraw.
     pub fn render(&self, f: impl Fn(&mut Frame) + Send + Sync + 'static) {
         let _ = self.tx.send(Command::Render(Arc::new(f)));
+    }
+
+    /// Starts a background thread that redraws the current render function at `fps`
+    /// frames per second. Call once after [`render`](Self::render) to drive animations
+    /// such as [`Spinner`](crate::widget::Spinner). The thread stops automatically
+    /// when the terminal shuts down.
+    pub fn animate(&self, fps: u64) {
+        let tx = self.tx.clone();
+        let interval = Duration::from_millis(1000 / fps.max(1));
+        thread::spawn(move || {
+            while tx.send(Command::Tick).is_ok() {
+                thread::sleep(interval);
+            }
+        });
     }
 
     /// Signals the render thread to restore the terminal and exit.

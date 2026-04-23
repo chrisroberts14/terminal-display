@@ -1,7 +1,7 @@
 use crate::layout::solve;
 use crate::{Buffer, Constraint, Rect, Widget};
 
-pub type BoxedWidget = Box<dyn FnOnce(Rect, &mut Buffer)>;
+pub type BoxedWidget = Box<dyn Fn(Rect, &mut Buffer) + 'static>;
 
 pub fn boxed(w: impl Widget + 'static) -> BoxedWidget {
     Box::new(move |area, buf| w.render(area, buf))
@@ -28,11 +28,11 @@ impl HStack {
 }
 
 impl Widget for VStack {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&self, area: Rect, buf: &mut Buffer) {
         let constraints: Vec<Constraint> = self.children.iter().map(|(c, _)| *c).collect();
         let heights = solve(&constraints, area.height);
         let mut y = area.y;
-        for ((_, child), h) in self.children.into_iter().zip(heights) {
+        for ((_, child), h) in self.children.iter().zip(heights) {
             if h > 0 {
                 child(
                     Rect {
@@ -50,11 +50,11 @@ impl Widget for VStack {
 }
 
 impl Widget for HStack {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&self, area: Rect, buf: &mut Buffer) {
         let constraints: Vec<Constraint> = self.children.iter().map(|(c, _)| *c).collect();
         let widths = solve(&constraints, area.width);
         let mut x = area.x;
-        for ((_, child), w) in self.children.into_iter().zip(widths) {
+        for ((_, child), w) in self.children.iter().zip(widths) {
             if w > 0 {
                 child(
                     Rect {

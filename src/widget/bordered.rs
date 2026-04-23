@@ -9,7 +9,7 @@ pub struct Bordered<W: Widget> {
 }
 
 impl<W: Widget + 'static> Widget for Bordered<W> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+    fn render(&self, area: Rect, buf: &mut Buffer) {
         let inner = self.block.inner(area);
         self.block.render(area, buf);
         self.child.render(inner, buf);
