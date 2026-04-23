@@ -3,7 +3,7 @@ use crate::geometry::Rect;
 use crate::style::Color;
 use crate::widget::Widget;
 use crossterm::cursor::{Hide, MoveTo, Show};
-use crossterm::event::Event;
+use crossterm::event::{Event, KeyCode, KeyModifiers};
 use crossterm::execute;
 use crossterm::style::{
     Attribute, Print, ResetColor, SetAttribute, SetBackgroundColor, SetForegroundColor,
@@ -12,11 +12,13 @@ use crossterm::terminal::{
     Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
 use std::io::{Write, stdout};
-use std::sync::mpsc;
+use std::sync::{Arc, mpsc};
 use std::thread;
 
+type RenderFn = Arc<dyn Fn(&mut Frame) + Send + Sync>;
+
 enum Command {
-    Render(Box<dyn FnOnce(&mut Frame) + Send>),
+    Render(RenderFn),
     Resize(u16, u16),
     Shutdown,
 }
@@ -51,10 +53,6 @@ impl Frame {
     /// render content into its inner area.
     pub fn render(&mut self, widget: impl Widget, area: Rect) {
         widget.render(area, &mut self.buffer);
-    }
-
-    pub(crate) fn buffer(&self) -> &Buffer {
-        &self.buffer
     }
 
     pub(crate) fn into_buffer(self) -> Buffer {
@@ -103,27 +101,24 @@ impl Terminal {
         thread::spawn(move || {
             let mut area = area;
             let mut prev = Buffer::empty(area);
+            let mut current_fn: Option<RenderFn> = None;
 
-            while let Ok(command) = rx.recv() {
-                match command {
-                    Command::Render(func) => {
-                        let mut frame = Frame::new(area);
-                        func(&mut frame);
-                        let curr = frame.into_buffer();
-                        render_diff(&curr, &prev).unwrap();
-                        prev = curr;
-                    }
+            'outer: while let Ok(cmd) = rx.recv() {
+                match cmd {
+                    Command::Render(f) => current_fn = Some(f),
                     Command::Resize(w, h) => {
-                        area = Rect {
-                            x: 0,
-                            y: 0,
-                            width: w,
-                            height: h,
-                        };
+                        area = Rect { x: 0, y: 0, width: w, height: h };
                         prev = Buffer::empty(area);
                         let _ = execute!(stdout(), Clear(ClearType::All), MoveTo(0, 0));
                     }
-                    Command::Shutdown => break,
+                    Command::Shutdown => break 'outer,
+                }
+                if let Some(f) = &current_fn {
+                    let mut frame = Frame::new(area);
+                    f(&mut frame);
+                    let curr = frame.into_buffer();
+                    let _ = render_diff(&curr, &prev);
+                    prev = curr;
                 }
             }
             let _ = execute!(stdout(), LeaveAlternateScreen, Show);
@@ -132,8 +127,18 @@ impl Terminal {
 
         thread::spawn(move || {
             loop {
-                if let Ok(Event::Resize(w, h)) = crossterm::event::read() {
-                    let _ = event_tx.send(Command::Resize(w, h));
+                match crossterm::event::read() {
+                    Ok(Event::Resize(w, h)) => {
+                        let _ = event_tx.send(Command::Resize(w, h));
+                    }
+                    Ok(Event::Key(key))
+                        if key.code == KeyCode::Char('c')
+                            && key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
+                        let _ = event_tx.send(Command::Shutdown);
+                        break;
+                    }
+                    _ => {}
                 }
             }
         });
@@ -143,8 +148,11 @@ impl Terminal {
 }
 
 fn render_diff(curr: &Buffer, prev: &Buffer) -> std::io::Result<()> {
+    let Some(cells) = curr.diff(prev) else {
+        return Ok(());
+    };
     let mut out = stdout();
-    for (x, y, cell) in curr.diff(prev).unwrap() {
+    for (x, y, cell) in cells {
         execute!(out, MoveTo(x, y))?;
         apply_style(&cell, &mut out)?;
         execute!(out, Print(cell.ch))?;
@@ -209,12 +217,13 @@ pub struct TerminalHandle {
 }
 
 impl TerminalHandle {
-    /// Submits a render closure to the background thread.
+    /// Sets the current render function.
     ///
-    /// The closure receives a [`Frame`] sized to the current terminal dimensions.
-    /// It is executed on the render thread, so captured values must be `Send + 'static`.
-    pub fn render(&self, f: impl FnOnce(&mut Frame) + Send + 'static) {
-        let _ = self.tx.send(Command::Render(Box::new(f)));
+    /// The closure is called immediately to produce the first frame, and again automatically
+    /// whenever the terminal is resized, keeping the display up to date without any looping
+    /// in the caller. Calling `render` again replaces the closure and triggers a redraw.
+    pub fn render(&self, f: impl Fn(&mut Frame) + Send + Sync + 'static) {
+        let _ = self.tx.send(Command::Render(Arc::new(f)));
     }
 
     /// Signals the render thread to restore the terminal and exit.
@@ -254,7 +263,7 @@ mod tests {
         };
         let mut frame = Frame::new(area);
         frame.render(Text::raw("hello"), area);
-        assert_eq!(frame.buffer().get_cell(0, 0).unwrap().ch, 'h');
+        assert_eq!(frame.into_buffer().get_cell(0, 0).unwrap().ch, 'h');
     }
 
     #[test]

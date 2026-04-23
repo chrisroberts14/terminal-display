@@ -34,10 +34,10 @@ pub struct Buffer {
 impl Buffer {
     /// Creates a buffer filled with blank [`Cell`]s covering `area`.
     pub fn empty(area: Rect) -> Self {
-        let cell_count = area.width * area.height;
+        let cell_count = area.width as usize * area.height as usize;
         Buffer {
             area,
-            cells: vec![Cell::default(); cell_count as usize],
+            cells: vec![Cell::default(); cell_count],
         }
     }
 
