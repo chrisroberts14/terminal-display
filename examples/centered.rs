@@ -12,12 +12,10 @@ fn main() {
     handle.render(|frame| {
         let area = frame.area();
         frame.render(
-            Bordered {
-                block: Block::new().title("Loading"),
-                child: Centered {
-                    child: Spinner::new(SpinnerStyle::Dots, style!(bold)),
-                },
-            },
+            Bordered::new(
+                Block::new().title("Loading"),
+                Centered::new(Spinner::new(SpinnerStyle::Dots, style!(bold))),
+            ),
             area,
         );
     });

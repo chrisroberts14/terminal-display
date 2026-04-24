@@ -14,20 +14,20 @@ fn main() {
         let area = frame.area();
         frame.render(
             HStack::new(vec![
-                Bordered {
-                    block: Block::new().title("Dots"),
-                    child: Spinner::new(SpinnerStyle::Dots, style!(bold)),
-                }
+                Bordered::new(
+                    Block::new().title("Dots"),
+                    Spinner::new(SpinnerStyle::Dots, style!(bold)),
+                )
                 .fill(),
-                Bordered {
-                    block: Block::new().title("Line"),
-                    child: Spinner::new(SpinnerStyle::Line, style!(fg = Color::Green)),
-                }
+                Bordered::new(
+                    Block::new().title("Line"),
+                    Spinner::new(SpinnerStyle::Line, style!(fg = Color::Green)),
+                )
                 .fill(),
-                Bordered {
-                    block: Block::new().title("Arc"),
-                    child: Spinner::new(SpinnerStyle::Arc, style!(bg = Color::Red)),
-                }
+                Bordered::new(
+                    Block::new().title("Arc"),
+                    Spinner::new(SpinnerStyle::Arc, style!(bg = Color::Red)),
+                )
                 .fill(),
             ]),
             area,

@@ -24,12 +24,12 @@ impl Default for Cell {
 /// A 2D grid of [`Cell`]s covering a [`Rect`].
 ///
 /// Widgets write into a `Buffer` during rendering. After each frame the terminal
-/// compares the new buffer against the previous one with [`Buffer::diff`] and
-/// only flushes the changed cells to stdout.
+/// compares the new buffer against the previous one and only flushes the changed
+/// cells to stdout.
 #[derive(Clone)]
 pub struct Buffer {
     /// The region of the terminal this buffer covers.
-    pub area: Rect,
+    pub(crate) area: Rect,
     cells: Vec<Cell>,
     /// Set by animated widgets (e.g. [`Spinner`](crate::widget::Spinner)) during render
     /// to signal that the frame should be redrawn on a timer.
@@ -89,7 +89,7 @@ impl Buffer {
 
     /// Returns `(x, y, cell)` for each cell that differs from `prev`.
     /// Returns `None` if the two buffers are not the same dimensions
-    pub fn diff(&self, prev: &Buffer) -> Option<Vec<(u16, u16, Cell)>> {
+    pub(crate) fn diff(&self, prev: &Buffer) -> Option<Vec<(u16, u16, Cell)>> {
         // Check dimensions and short circuit if they are not compatible
         if self.area.height != prev.area.height || self.area.width != prev.area.width {
             return None;

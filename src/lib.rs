@@ -21,14 +21,14 @@
 //!
 //! # Public re-exports
 
-pub mod buffer;
-pub mod geometry;
-pub mod layout;
+pub(crate) mod buffer;
+pub(crate) mod geometry;
+pub(crate) mod layout;
 mod macros;
 pub mod progress;
-pub mod style;
-pub mod terminal;
-pub mod widget;
+pub(crate) mod style;
+pub(crate) mod terminal;
+pub(crate) mod widget;
 
 pub use buffer::{Buffer, Cell};
 pub use geometry::Rect;

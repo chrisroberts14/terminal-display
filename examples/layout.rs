@@ -15,25 +15,25 @@ fn main() {
             // Outer VStack splits the screen into three horizontal bands
             VStack::new(vec![
                 // Fixed: always 3 rows tall
-                Bordered {
-                    block: Block::new().title("Fixed(3)"),
-                    child: Text::raw("This band is always 3 rows tall."),
-                }
+                Bordered::new(
+                    Block::new().title("Fixed(3)"),
+                    Text::raw("This band is always 3 rows tall."),
+                )
                 .fixed(3),
                 // Ratio: takes 1/3 of remaining space
-                Bordered {
-                    block: Block::new().title("Ratio(1,3)"),
-                    child: HStack::new(vec![
+                Bordered::new(
+                    Block::new().title("Ratio(1,3)"),
+                    HStack::new(vec![
                         Text::raw("left column").fill(),
                         Text::raw("right column").fill(),
                     ]),
-                }
+                )
                 .ratio(1, 3),
                 // Fill: takes all remaining space
-                Bordered {
-                    block: Block::new().title("Fill"),
-                    child: Text::raw("This band fills whatever is left."),
-                }
+                Bordered::new(
+                    Block::new().title("Fill"),
+                    Text::raw("This band fills whatever is left."),
+                )
                 .fill(),
             ]),
             area,

@@ -14,9 +14,9 @@ fn main() {
     handle.render(|frame| {
         let area = frame.area();
         frame.render(
-            Bordered {
-                block: Block::new().title("Divider demo"),
-                child: VStack::new(vec![
+            Bordered::new(
+                Block::new().title("Divider demo"),
+                VStack::new(vec![
                     // Top half: two text panels separated by a vertical divider
                     HStack::new(vec![
                         Text::raw("Left panel").fill(),
@@ -36,7 +36,7 @@ fn main() {
                     ])
                     .fill(),
                 ]),
-            },
+            ),
             area,
         );
     });

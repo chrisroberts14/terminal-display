@@ -22,9 +22,9 @@ fn main() {
             frame.render(block, area);
             frame.render(
                 HStack::new(vec![
-                    Bordered {
-                        block: Block::new().title("Core 0"),
-                        child: VStack::new(vec![
+                    Bordered::new(
+                        Block::new().title("Core 0"),
+                        VStack::new(vec![
                             Text::raw(format!("CPU: {}%", cpu)).fixed(1),
                             Text::from(vec![
                                 span!("MEM: "),
@@ -32,11 +32,11 @@ fn main() {
                             ])
                             .fixed(1),
                         ]),
-                    }
+                    )
                     .fill(),
-                    Bordered {
-                        block: Block::new().title("Core 1"),
-                        child: VStack::new(vec![
+                    Bordered::new(
+                        Block::new().title("Core 1"),
+                        VStack::new(vec![
                             Text::raw(format!("CPU: {}%", cpu)).fixed(1),
                             Text::from(vec![
                                 span!("MEM: "),
@@ -44,7 +44,7 @@ fn main() {
                             ])
                             .fixed(1),
                         ]),
-                    }
+                    )
                     .fill(),
                 ]),
                 inner,

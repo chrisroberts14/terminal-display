@@ -12,10 +12,10 @@ fn main() {
     handle.render(|frame| {
         let area = frame.area();
         frame.render(
-            Bordered {
-                block: Block::new().title("Bordered widget"),
-                child: Text::raw("The Bordered wrapper handles the border and renders the child in the inner area automatically."),
-            },
+            Bordered::new(
+                Block::new().title("Bordered widget"),
+                Text::raw("The Bordered wrapper handles the border and renders the child in the inner area automatically."),
+            ),
             area,
         );
     });

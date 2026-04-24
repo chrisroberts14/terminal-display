@@ -14,7 +14,7 @@ pub struct ProgressIter<I: Iterator> {
 }
 
 impl<I: Iterator> ProgressIter<I> {
-    pub fn new(inner: I, handle: TerminalHandle) -> Self {
+    pub(crate) fn new(inner: I, handle: TerminalHandle) -> Self {
         let total = match inner.size_hint() {
             (lower, Some(upper)) if lower == upper => Some(upper),
             _ => None,

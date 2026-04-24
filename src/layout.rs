@@ -13,7 +13,7 @@ pub enum Constraint {
 }
 
 /// Allocates `total` units across `constraints`. Returns one length per constraint.
-pub fn solve(constraints: &[Constraint], total: u16) -> Vec<u16> {
+pub(crate) fn solve(constraints: &[Constraint], total: u16) -> Vec<u16> {
     let mut sizes = vec![0u16; constraints.len()];
     let mut used: u16 = 0;
     let mut fill_count: u16 = 0;

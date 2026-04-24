@@ -6,8 +6,14 @@ use crate::{Buffer, Rect, Widget};
 /// Wraps any widget in a [`Block`] border, rendering the border first then the
 /// child clipped to the inner area.
 pub struct Bordered<W: Widget> {
-    pub block: Block,
-    pub child: W,
+    block: Block,
+    child: W,
+}
+
+impl<W: Widget> Bordered<W> {
+    pub fn new(block: Block, child: W) -> Self {
+        Bordered { block, child }
+    }
 }
 
 impl<W: Widget + 'static> Widget for Bordered<W> {
@@ -44,11 +50,7 @@ mod tests {
     #[test]
     fn renders_border_corners() {
         let mut buf = Buffer::empty(rect(10, 5));
-        Bordered {
-            block: Block::new(),
-            child: Text::raw(""),
-        }
-        .render(rect(10, 5), &mut buf);
+        Bordered::new(Block::new(), Text::raw("")).render(rect(10, 5), &mut buf);
         assert_eq!(buf.get_cell(0, 0).unwrap().ch, '┌');
         assert_eq!(buf.get_cell(9, 0).unwrap().ch, '┐');
         assert_eq!(buf.get_cell(0, 4).unwrap().ch, '└');
@@ -58,11 +60,7 @@ mod tests {
     #[test]
     fn child_renders_inside_border() {
         let mut buf = Buffer::empty(rect(10, 5));
-        Bordered {
-            block: Block::new(),
-            child: Text::raw("hi"),
-        }
-        .render(rect(10, 5), &mut buf);
+        Bordered::new(Block::new(), Text::raw("hi")).render(rect(10, 5), &mut buf);
         // Inner area starts at (1,1)
         assert_eq!(buf.get_cell(1, 1).unwrap().ch, 'h');
         assert_eq!(buf.get_cell(2, 1).unwrap().ch, 'i');
@@ -72,11 +70,7 @@ mod tests {
     fn child_does_not_overwrite_border() {
         let long_text = "x".repeat(20);
         let mut buf = Buffer::empty(rect(10, 5));
-        Bordered {
-            block: Block::new(),
-            child: Text::raw(long_text),
-        }
-        .render(rect(10, 5), &mut buf);
+        Bordered::new(Block::new(), Text::raw(long_text)).render(rect(10, 5), &mut buf);
         // Right border must still be '│', not overwritten by the long child text
         assert_eq!(buf.get_cell(9, 1).unwrap().ch, '│');
     }
@@ -84,11 +78,7 @@ mod tests {
     #[test]
     fn title_appears_on_top_border() {
         let mut buf = Buffer::empty(rect(10, 5));
-        Bordered {
-            block: Block::new().title("CPU"),
-            child: Text::raw(""),
-        }
-        .render(rect(10, 5), &mut buf);
+        Bordered::new(Block::new().title("CPU"), Text::raw("")).render(rect(10, 5), &mut buf);
         assert_eq!(buf.get_cell(1, 0).unwrap().ch, 'C');
         assert_eq!(buf.get_cell(2, 0).unwrap().ch, 'P');
         assert_eq!(buf.get_cell(3, 0).unwrap().ch, 'U');
@@ -97,13 +87,13 @@ mod tests {
     #[test]
     fn natural_size_adds_two_to_child_dimensions() {
         // Spinner is 1×1, so Bordered<Spinner> should report 3×3
-        let widget = Bordered {
-            block: Block::new(),
-            child: crate::widget::spinner::Spinner::new(
+        let widget = Bordered::new(
+            Block::new(),
+            crate::widget::spinner::Spinner::new(
                 crate::widget::spinner::SpinnerStyle::Dots,
                 crate::style::Style::default(),
             ),
-        };
+        );
         assert_eq!(widget.natural_size(), Some((3, 3)));
     }
 
@@ -114,10 +104,7 @@ mod tests {
             fn render(&self, _area: Rect, _buf: &mut Buffer) {}
         }
 
-        let widget = Bordered {
-            block: Block::new(),
-            child: NoSizeWidget,
-        };
+        let widget = Bordered::new(Block::new(), NoSizeWidget);
         assert_eq!(widget.natural_size(), None);
     }
 
@@ -131,10 +118,7 @@ mod tests {
             }
         }
 
-        let widget = Bordered {
-            block: Block::new(),
-            child: MaxSizeWidget,
-        };
+        let widget = Bordered::new(Block::new(), MaxSizeWidget);
         assert_eq!(widget.natural_size(), Some((u16::MAX, u16::MAX)));
     }
 }

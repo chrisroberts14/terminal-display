@@ -4,14 +4,14 @@ use crate::buffer::Buffer;
 use crate::geometry::Rect;
 use crate::layout::Constraint;
 
-pub mod block;
-pub mod bordered;
-pub mod centered;
-pub mod divider;
-pub mod progress_bar;
-pub mod spinner;
-pub mod stack;
-pub mod text;
+pub(crate) mod block;
+pub(crate) mod bordered;
+pub(crate) mod centered;
+pub(crate) mod divider;
+pub(crate) mod progress_bar;
+pub(crate) mod spinner;
+pub(crate) mod stack;
+pub(crate) mod text;
 
 pub use block::Block;
 pub use bordered::Bordered;
