@@ -1,5 +1,15 @@
 //! Convenience macros: [`style!`], [`span!`], [`vstack!`], [`hstack!`].
 
+/// Constructs a [`Style`](crate::Style) using a concise field syntax.
+///
+/// # Examples
+///
+/// ```
+/// # use terminal_display::{style, Color};
+/// let s = style!(bold);
+/// let s = style!(fg = Color::Red);
+/// let s = style!(fg = Color::Green, bold, italic);
+/// ```
 #[macro_export]
 macro_rules! style {
     ($($key:ident $(= $val:expr)?),* $(,)?) => {{
@@ -29,6 +39,15 @@ macro_rules! _style_field {
     };
 }
 
+/// Constructs a [`Span`](crate::Span) — either unstyled or with a [`Style`](crate::Style).
+///
+/// # Examples
+///
+/// ```
+/// # use terminal_display::{span, style, Color};
+/// let plain = span!("hello");
+/// let styled = span!("hello", style!(fg = Color::Red));
+/// ```
 #[macro_export]
 macro_rules! span {
     ($content:expr) => {
@@ -39,7 +58,14 @@ macro_rules! span {
     };
 }
 
-/// Builds a `VStack` of plain-text rows, each taking exactly 1 row of height.
+/// Constructs a [`VStack`](crate::VStack) of plain-text rows, each taking exactly 1 row of height.
+///
+/// # Examples
+///
+/// ```
+/// # use terminal_display::vstack;
+/// let stack = vstack!["line one", "line two", "line three"];
+/// ```
 #[macro_export]
 macro_rules! vstack {
     ($($line:expr),* $(,)?) => {
@@ -49,7 +75,14 @@ macro_rules! vstack {
     };
 }
 
-/// Builds an `HStack` of plain-text columns, each taking an equal share of the available width.
+/// Constructs an [`HStack`](crate::HStack) of plain-text columns, each taking an equal share of the available width.
+///
+/// # Examples
+///
+/// ```
+/// # use terminal_display::hstack;
+/// let stack = hstack!["left", "centre", "right"];
+/// ```
 #[macro_export]
 macro_rules! hstack {
     ($($col:expr),* $(,)?) => {
