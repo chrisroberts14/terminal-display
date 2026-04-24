@@ -1,8 +1,7 @@
 use crossterm::style::Color as CtColor;
 
-/// Colors
-///
-/// Here we define multiple defaults, or you can use your own RGB value
+/// A terminal colour. Use [`Color::Rgb`] for full 24-bit colour or [`Color::Indexed`]
+/// for 256-colour palette entries. [`Color::Reset`] restores the terminal default.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Color {
     Reset,

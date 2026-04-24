@@ -33,8 +33,8 @@ impl SpinnerStyle {
 /// A stateless animated spinner. The current frame is derived from the wall clock,
 /// so any number of spinners can be created and discarded freely each render.
 ///
-/// Animation requires [`TerminalHandle::animate`] to be called once to start the
-/// background tick thread.
+/// Rendering a `Spinner` automatically enables the background tick thread — no
+/// additional setup is required.
 pub struct Spinner {
     spinner_style: SpinnerStyle,
     style: Style,

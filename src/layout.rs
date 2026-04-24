@@ -1,11 +1,16 @@
+/// Describes how a child in a [`VStack`](crate::widget::VStack) or
+/// [`HStack`](crate::widget::HStack) should be sized.
 #[derive(Debug, Clone, Copy)]
 pub enum Constraint {
+    /// Exactly `n` rows or columns.
     Fixed(u16),
+    /// Take an equal share of whatever space remains after `Fixed` and `Ratio` children.
     Fill,
+    /// A fractional share of the total — e.g. `Ratio(1, 3)` is one third.
     Ratio(u16, u16),
 }
 
-/// Allocates `total` units across `constraints`. Returns one length per constraing
+/// Allocates `total` units across `constraints`. Returns one length per constraint.
 pub fn solve(constraints: &[Constraint], total: u16) -> Vec<u16> {
     let mut sizes = vec![0u16; constraints.len()];
     let mut used: u16 = 0;

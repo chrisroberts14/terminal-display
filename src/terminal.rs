@@ -87,14 +87,17 @@ impl Terminal {
         })
     }
 
-    /// Moves the terminal into a background render thread and returns a [`TerminalHandle`].
+    /// Moves the terminal into background threads and returns a [`TerminalHandle`].
     ///
-    /// Two threads are spawned:
+    /// Two threads are always spawned:
     /// - **Render thread** — receives render closures and resize commands, diffs each
     ///   frame against the previous one, and writes only changed cells to stdout.
-    /// - **Event thread** — blocks on crossterm events and forwards terminal resize
-    ///   events to the render thread, which clears the screen and updates the frame area.
-    ///   Note: Any other events can be added here
+    /// - **Event thread** — blocks on crossterm events and forwards resize events and
+    ///   Ctrl-C to the render thread.
+    ///
+    /// A third **tick thread** is spawned automatically the first time an animated widget
+    /// (e.g. [`Spinner`](crate::widget::Spinner)) is rendered, driving redraws at 24 fps.
+    /// Static UIs never trigger it.
     pub fn run(self) -> TerminalHandle {
         let area = self.area;
         let (tx, rx) = mpsc::channel::<Command>();

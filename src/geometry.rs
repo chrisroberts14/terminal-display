@@ -1,14 +1,18 @@
 //! Geometry for the terminal display
 
+/// A rectangular region of the terminal, in cell coordinates.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Rect {
+    /// Column of the left edge.
     pub x: u16,
+    /// Row of the top edge.
     pub y: u16,
     pub width: u16,
     pub height: u16,
 }
 
 impl Rect {
+    /// Total number of cells covered by this rect.
     pub fn area(&self) -> u32 {
         self.width as u32 * self.height as u32
     }
