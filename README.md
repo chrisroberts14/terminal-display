@@ -82,6 +82,22 @@ fn main() {
 | `HStack::new(children)` | Horizontal stack, children sized by constraints |
 | `Block::new().title("…")` | Border box with optional title |
 | `Bordered { block, child }` | Any widget wrapped in a `Block` border |
+| `Centered { child }` | Any widget centred in its allocated area |
+| `Spinner::new(style, style!)` | Animated loading indicator |
+| `ProgressBar::new(value, total)` | Filled progress bar with percentage |
+| `Divider` | Horizontal or vertical separator line |
+
+`Centered` works with any widget that implements `natural_size()` — `Spinner`, `Text`, and `Bordered` all do. Composition is additive:
+
+```rust
+// A 3×3 bordered spinner centred in the terminal
+Centered {
+    child: Bordered {
+        block: Block::new().title("Loading"),
+        child: Spinner::new(SpinnerStyle::Dots, style!(bold)),
+    },
+}
+```
 
 ### Layout constraints
 
