@@ -16,6 +16,12 @@ impl<W: Widget + 'static> Widget for Bordered<W> {
         self.block.render(area, buf);
         self.child.render(inner, buf);
     }
+
+    fn natural_size(&self) -> Option<(u16, u16)> {
+        self.child
+            .natural_size()
+            .map(|(w, h)| (w.saturating_add(2), h.saturating_add(2)))
+    }
 }
 
 #[cfg(test)]
@@ -86,5 +92,49 @@ mod tests {
         assert_eq!(buf.get_cell(1, 0).unwrap().ch, 'C');
         assert_eq!(buf.get_cell(2, 0).unwrap().ch, 'P');
         assert_eq!(buf.get_cell(3, 0).unwrap().ch, 'U');
+    }
+
+    #[test]
+    fn natural_size_adds_two_to_child_dimensions() {
+        // Spinner is 1×1, so Bordered<Spinner> should report 3×3
+        let widget = Bordered {
+            block: Block::new(),
+            child: crate::widget::spinner::Spinner::new(
+                crate::widget::spinner::SpinnerStyle::Dots,
+                crate::style::Style::default(),
+            ),
+        };
+        assert_eq!(widget.natural_size(), Some((3, 3)));
+    }
+
+    #[test]
+    fn natural_size_is_none_when_child_has_no_size() {
+        struct NoSizeWidget;
+        impl crate::widget::Widget for NoSizeWidget {
+            fn render(&self, _area: Rect, _buf: &mut Buffer) {}
+        }
+
+        let widget = Bordered {
+            block: Block::new(),
+            child: NoSizeWidget,
+        };
+        assert_eq!(widget.natural_size(), None);
+    }
+
+    #[test]
+    fn natural_size_saturates_at_u16_max() {
+        struct MaxSizeWidget;
+        impl crate::widget::Widget for MaxSizeWidget {
+            fn render(&self, _area: Rect, _buf: &mut Buffer) {}
+            fn natural_size(&self) -> Option<(u16, u16)> {
+                Some((u16::MAX, u16::MAX))
+            }
+        }
+
+        let widget = Bordered {
+            block: Block::new(),
+            child: MaxSizeWidget,
+        };
+        assert_eq!(widget.natural_size(), Some((u16::MAX, u16::MAX)));
     }
 }

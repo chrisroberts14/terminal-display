@@ -6,6 +6,7 @@ use crate::layout::Constraint;
 
 pub mod block;
 pub mod bordered;
+pub mod centered;
 pub mod divider;
 pub mod progress_bar;
 pub mod spinner;
@@ -14,6 +15,7 @@ pub mod text;
 
 pub use block::Block;
 pub use bordered::Bordered;
+pub use centered::Centered;
 pub use divider::Divider;
 pub use progress_bar::ProgressBar;
 pub use spinner::{Spinner, SpinnerStyle};
@@ -27,6 +29,14 @@ pub use text::Text;
 /// produces time-varying output that needs periodic redraws.
 pub trait Widget {
     fn render(&self, area: Rect, buf: &mut Buffer);
+
+    /// Returns the widget's intrinsic size as `(width, height)` in terminal cells, if it has one.
+    ///
+    /// `Centered` uses this to compute a centred sub-rect. Return `None` (the
+    /// default) to opt out — the widget will fill whatever area it is given.
+    fn natural_size(&self) -> Option<(u16, u16)> {
+        None
+    }
 }
 
 /// Extension methods for all [`Widget`] types that produce `(Constraint, BoxedWidget)` pairs

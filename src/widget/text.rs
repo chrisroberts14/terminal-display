@@ -41,6 +41,11 @@ impl Widget for Text {
             }
         }
     }
+
+    fn natural_size(&self) -> Option<(u16, u16)> {
+        let total: usize = self.spans.iter().map(|s| s.content.chars().count()).sum();
+        Some((u16::try_from(total).unwrap_or(u16::MAX), 1))
+    }
 }
 
 #[cfg(test)]
@@ -89,5 +94,24 @@ mod tests {
         assert_eq!(buf.get_cell(2, 0).unwrap().ch, 'c');
         assert_eq!(buf.get_cell(2, 0).unwrap().style.fg, Some(Color::Red));
         assert_eq!(buf.get_cell(0, 0).unwrap().style.fg, None);
+    }
+
+    #[test]
+    fn natural_size_sums_chars_across_spans() {
+        let t = Text::from(vec![Span::raw("hello"), Span::raw("world")]);
+        assert_eq!(t.natural_size(), Some((10, 1)));
+    }
+
+    #[test]
+    fn natural_size_of_empty_spans_is_zero_width() {
+        let t = Text::from(vec![]);
+        assert_eq!(t.natural_size(), Some((0, 1)));
+    }
+
+    #[test]
+    fn natural_size_counts_unicode_chars_not_bytes() {
+        // "café" is 4 Unicode scalar values but 5 UTF-8 bytes
+        let t = Text::raw("café");
+        assert_eq!(t.natural_size(), Some((4, 1)));
     }
 }

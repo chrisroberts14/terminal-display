@@ -63,6 +63,10 @@ impl Widget for Spinner {
         let span = Span::styled(frames[idx], self.style);
         Text::from(vec![span]).render(area, buf);
     }
+
+    fn natural_size(&self) -> Option<(u16, u16)> {
+        Some((1, 1))
+    }
 }
 
 #[cfg(test)]
@@ -111,5 +115,11 @@ mod tests {
         let mut buf = Buffer::empty(rect(1, 1));
         Spinner::new(SpinnerStyle::Line, bold).render(rect(1, 1), &mut buf);
         assert!(buf.get_cell(0, 0).unwrap().style.bold);
+    }
+
+    #[test]
+    fn natural_size_is_one_by_one() {
+        let s = Spinner::new(SpinnerStyle::Dots, Style::default());
+        assert_eq!(s.natural_size(), Some((1, 1)));
     }
 }
