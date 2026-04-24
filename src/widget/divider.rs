@@ -1,5 +1,8 @@
 use crate::{Buffer, Cell, Rect, Style, Widget};
 
+/// A horizontal (`─`) or vertical (`│`) rule that fills its entire area.
+///
+/// Orientation is chosen automatically: horizontal when `width >= height`, vertical otherwise.
 pub struct Divider {
     style: Style,
 }

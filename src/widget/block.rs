@@ -1,5 +1,8 @@
 use crate::{Buffer, Cell, Rect, Style, Widget};
 
+/// A box drawn with Unicode line-drawing characters, with an optional title on the top border.
+///
+/// Typically used via [`Bordered`](crate::widget::Bordered) to frame another widget.
 pub struct Block {
     title: Option<String>,
     border_style: Style,

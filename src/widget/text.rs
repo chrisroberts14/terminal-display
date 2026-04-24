@@ -1,6 +1,10 @@
 use crate::widget::Widget;
 use crate::{Buffer, Cell, Rect, Span};
 
+/// A single line of styled text, composed of one or more [`Span`]s.
+///
+/// Content that overflows the area width is clipped. Newlines are not supported —
+/// use multiple widgets in a [`VStack`](crate::widget::VStack) for multi-line layouts.
 pub struct Text {
     spans: Vec<Span>,
 }

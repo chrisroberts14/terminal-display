@@ -1,16 +1,20 @@
 use crate::layout::solve;
 use crate::{Buffer, Constraint, Rect, Widget};
 
+/// A type-erased widget render function, produced by [`boxed`] or the [`WidgetExt`](crate::widget::WidgetExt) helpers.
 pub type BoxedWidget = Box<dyn Fn(Rect, &mut Buffer) + 'static>;
 
+/// Wraps a [`Widget`] into a [`BoxedWidget`] for use as a stack child.
 pub fn boxed(w: impl Widget + 'static) -> BoxedWidget {
     Box::new(move |area, buf| w.render(area, buf))
 }
 
+/// Lays out children vertically, each sized by a [`Constraint`].
 pub struct VStack {
     children: Vec<(Constraint, BoxedWidget)>,
 }
 
+/// Lays out children horizontally, each sized by a [`Constraint`].
 pub struct HStack {
     children: Vec<(Constraint, BoxedWidget)>,
 }

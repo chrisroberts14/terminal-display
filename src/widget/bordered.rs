@@ -1,8 +1,8 @@
 use crate::widget::block::Block;
 use crate::{Buffer, Rect, Widget};
 
-/// Wraps any widget in a [`Block`] border, rendering the block first then the
-/// child inside its inner area.
+/// Wraps any widget in a [`Block`] border, rendering the border first then the
+/// child clipped to the inner area.
 pub struct Bordered<W: Widget> {
     pub block: Block,
     pub child: W,

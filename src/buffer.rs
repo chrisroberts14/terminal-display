@@ -45,8 +45,9 @@ impl Buffer {
         }
     }
 
-    /// Marks this buffer as requiring periodic redraws. Call from [`Widget::render`]
-    /// implementations that display time-varying content.
+    /// Marks this buffer as requiring periodic redraws. Call from
+    /// [`Widget::render`](crate::widget::Widget::render) implementations that display
+    /// time-varying content.
     pub fn mark_animated(&mut self) {
         self.animated = true;
     }

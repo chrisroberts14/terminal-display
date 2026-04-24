@@ -18,6 +18,11 @@ pub use spinner::{Spinner, SpinnerStyle};
 pub use stack::{BoxedWidget, HStack, VStack, boxed};
 pub use text::Text;
 
+/// The core rendering trait. Implement this to create a custom widget.
+///
+/// `render` writes into `buf` within the bounds of `area`. Out-of-bounds writes are
+/// silently ignored by [`Buffer`]. Call [`Buffer::mark_animated`] if the widget
+/// produces time-varying output that needs periodic redraws.
 pub trait Widget {
     fn render(&self, area: Rect, buf: &mut Buffer);
 }

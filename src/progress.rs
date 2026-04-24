@@ -1,6 +1,9 @@
 use crate::terminal::TerminalHandle;
 use crate::widget::progress_bar::ProgressBar;
 
+/// An iterator adapter that renders a [`ProgressBar`] to a [`TerminalHandle`] as it advances.
+///
+/// Obtain via [`ProgressExt::with_progress`] rather than constructing directly.
 pub struct ProgressIter<I: Iterator> {
     inner: I,
     current: usize,

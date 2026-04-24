@@ -7,6 +7,10 @@ use crate::widget::text::Text;
 const FILL: &str = "█";
 const EMPTY: &str = "░";
 
+/// A horizontal progress bar rendered as `[████░░░░] 50% (5/10)`.
+///
+/// When `total` is `None` (e.g. for an iterator with an unknown length) the label
+/// shows the item count instead of a percentage.
 pub struct ProgressBar {
     current: usize,
     total: Option<usize>,
