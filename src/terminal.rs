@@ -99,11 +99,13 @@ impl Terminal {
         let area = self.area;
         let (tx, rx) = mpsc::channel::<Command>();
         let event_tx = tx.clone();
+        let render_tx = tx.clone();
 
         thread::spawn(move || {
             let mut area = area;
             let mut prev = Buffer::empty(area);
             let mut current_fn: Option<RenderFn> = None;
+            let mut tick_running = false;
 
             'outer: while let Ok(cmd) = rx.recv() {
                 match cmd {
@@ -125,6 +127,15 @@ impl Terminal {
                     let mut frame = Frame::new(area);
                     f(&mut frame);
                     let curr = frame.into_buffer();
+                    if curr.animated && !tick_running {
+                        let tick_tx = render_tx.clone();
+                        thread::spawn(move || {
+                            while tick_tx.send(Command::Tick).is_ok() {
+                                thread::sleep(Duration::from_millis(1000 / 24));
+                            }
+                        });
+                        tick_running = true;
+                    }
                     let _ = render_diff(&curr, &prev);
                     prev = curr;
                 }
@@ -233,20 +244,6 @@ impl TerminalHandle {
     /// in the caller. Calling `render` again replaces the closure and triggers a redraw.
     pub fn render(&self, f: impl Fn(&mut Frame) + Send + Sync + 'static) {
         let _ = self.tx.send(Command::Render(Arc::new(f)));
-    }
-
-    /// Starts a background thread that redraws the current render function at `fps`
-    /// frames per second. Call once after [`render`](Self::render) to drive animations
-    /// such as [`Spinner`](crate::widget::Spinner). The thread stops automatically
-    /// when the terminal shuts down.
-    pub fn animate(&self, fps: u64) {
-        let tx = self.tx.clone();
-        let interval = Duration::from_millis(1000 / fps.max(1));
-        thread::spawn(move || {
-            while tx.send(Command::Tick).is_ok() {
-                thread::sleep(interval);
-            }
-        });
     }
 
     /// Signals the render thread to restore the terminal and exit.

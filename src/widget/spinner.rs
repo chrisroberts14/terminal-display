@@ -51,6 +51,7 @@ impl Spinner {
 
 impl Widget for Spinner {
     fn render(&self, area: Rect, buf: &mut Buffer) {
+        buf.mark_animated();
         let frames = self.spinner_style.frames();
         let ms = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)

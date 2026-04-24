@@ -10,8 +10,6 @@ fn main() {
     let terminal = Terminal::new().expect("failed to init terminal");
     let handle = terminal.run();
 
-    handle.animate(12);
-
     handle.render(|frame| {
         let area = frame.area();
         frame.render(

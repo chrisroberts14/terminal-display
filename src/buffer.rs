@@ -29,6 +29,9 @@ pub struct Buffer {
     /// The region of the terminal this buffer covers.
     pub area: Rect,
     cells: Vec<Cell>,
+    /// Set by animated widgets (e.g. [`Spinner`](crate::widget::Spinner)) during render
+    /// to signal that the frame should be redrawn on a timer.
+    pub(crate) animated: bool,
 }
 
 impl Buffer {
@@ -38,7 +41,14 @@ impl Buffer {
         Buffer {
             area,
             cells: vec![Cell::default(); cell_count],
+            animated: false,
         }
+    }
+
+    /// Marks this buffer as requiring periodic redraws. Call from [`Widget::render`]
+    /// implementations that display time-varying content.
+    pub fn mark_animated(&mut self) {
+        self.animated = true;
     }
 
     /// Converts absolute terminal coordinates to a flat index into `cells`.
