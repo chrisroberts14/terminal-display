@@ -1,3 +1,5 @@
+//! [`Bordered`] — wraps any widget in a [`Block`] border.
+
 use crate::widget::block::Block;
 use crate::{Buffer, Rect, Widget};
 

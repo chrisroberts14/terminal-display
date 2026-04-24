@@ -1,3 +1,5 @@
+//! Colours, text attributes, and styled text spans.
+
 use crossterm::style::Color as CtColor;
 
 /// A terminal colour. Use [`Color::Rgb`] for full 24-bit colour or [`Color::Indexed`]

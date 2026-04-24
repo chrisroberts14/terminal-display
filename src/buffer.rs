@@ -1,3 +1,5 @@
+//! The [`Buffer`] type — a 2D grid of [`Cell`]s that widgets render into.
+
 use crate::geometry::Rect;
 use crate::style::Style;
 

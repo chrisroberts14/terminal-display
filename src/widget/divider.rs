@@ -1,3 +1,5 @@
+//! Horizontal or vertical rule widget.
+
 use crate::{Buffer, Cell, Rect, Style, Widget};
 
 /// A horizontal (`─`) or vertical (`│`) rule that fills its entire area.

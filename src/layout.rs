@@ -1,3 +1,5 @@
+//! Constraint-based layout solver used by [`VStack`](crate::widget::VStack) and [`HStack`](crate::widget::HStack).
+
 /// Describes how a child in a [`VStack`](crate::widget::VStack) or
 /// [`HStack`](crate::widget::HStack) should be sized.
 #[derive(Debug, Clone, Copy)]

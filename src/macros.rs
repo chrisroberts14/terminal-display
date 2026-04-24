@@ -1,3 +1,5 @@
+//! Convenience macros: [`style!`], [`span!`], [`vstack!`], [`hstack!`].
+
 #[macro_export]
 macro_rules! style {
     ($($key:ident $(= $val:expr)?),* $(,)?) => {{

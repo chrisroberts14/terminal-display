@@ -1,3 +1,5 @@
+//! All built-in widgets and the [`Widget`] trait.
+
 use crate::buffer::Buffer;
 use crate::geometry::Rect;
 use crate::layout::Constraint;

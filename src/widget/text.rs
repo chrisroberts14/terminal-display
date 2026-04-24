@@ -1,3 +1,5 @@
+//! Single-line styled text widget.
+
 use crate::widget::Widget;
 use crate::{Buffer, Cell, Rect, Span};
 

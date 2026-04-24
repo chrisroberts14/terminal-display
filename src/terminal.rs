@@ -1,3 +1,5 @@
+//! Terminal initialisation, background render/event threads, and the [`TerminalHandle`].
+
 use crate::buffer::{Buffer, Cell};
 use crate::geometry::Rect;
 use crate::style::Color;

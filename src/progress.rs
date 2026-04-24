@@ -1,3 +1,5 @@
+//! Iterator adapter that renders a live [`ProgressBar`] as a loop advances.
+
 use crate::terminal::TerminalHandle;
 use crate::widget::progress_bar::ProgressBar;
 

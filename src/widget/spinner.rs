@@ -1,3 +1,5 @@
+//! Animated spinner widget with built-in frame sequences.
+
 use crate::buffer::Buffer;
 use crate::geometry::Rect;
 use crate::widget::Widget;

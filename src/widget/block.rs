@@ -1,3 +1,5 @@
+//! Box border widget with an optional title.
+
 use crate::{Buffer, Cell, Rect, Style, Widget};
 
 /// A box drawn with Unicode line-drawing characters, with an optional title on the top border.

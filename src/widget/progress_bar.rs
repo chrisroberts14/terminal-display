@@ -1,3 +1,5 @@
+//! Horizontal progress bar widget.
+
 use crate::buffer::Buffer;
 use crate::geometry::Rect;
 use crate::style::{Color, Span, Style};

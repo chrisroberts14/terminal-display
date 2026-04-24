@@ -1,3 +1,5 @@
+//! [`VStack`] and [`HStack`] — vertical and horizontal layout containers.
+
 use crate::layout::solve;
 use crate::{Buffer, Constraint, Rect, Widget};
 
