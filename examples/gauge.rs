@@ -2,10 +2,7 @@
 
 use std::thread;
 use std::time::Duration;
-use terminal_display::{
-    Block, Bordered, Centered, Color, Gauge, Rect, Spinner, SpinnerStyle, Terminal, WidgetExt,
-    style,
-};
+use terminal_display::{Color, Gauge, Rect, Terminal, style};
 
 fn main() {
     let terminal = Terminal::new().expect("failed to init terminal");
