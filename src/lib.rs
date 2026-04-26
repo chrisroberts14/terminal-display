@@ -37,6 +37,6 @@ pub use progress::ProgressExt;
 pub use style::{Color, Span, Style};
 pub use terminal::{Frame, Terminal, TerminalHandle};
 pub use widget::{
-    Block, Bordered, BoxedWidget, Centered, Divider, Gauge, HStack, Padding, ProgressBar, Spinner,
-    SpinnerStyle, Text, VStack, Widget, WidgetExt, boxed,
+    Block, Bordered, BoxedWidget, Centered, Divider, Gauge, HStack, Padding, Popup, ProgressBar,
+    Spinner, SpinnerStyle, Text, VStack, Widget, WidgetExt, boxed,
 };
