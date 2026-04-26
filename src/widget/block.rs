@@ -1,5 +1,6 @@
 //! Box border widget with an optional title.
 
+use crate::buffer::char_width;
 use crate::{Buffer, Cell, Rect, Style, Widget};
 
 /// A box drawn with Unicode line-drawing characters, with an optional title on the top border.
@@ -72,12 +73,14 @@ impl Widget for Block {
         }
 
         if let Some(title) = self.title.as_deref() {
-            for (i, ch) in title.chars().enumerate() {
-                let x = x0 + 1 + i as u16;
-                if x >= x1 {
+            let mut x = x0 + 1;
+            for ch in title.chars() {
+                let w = char_width(ch);
+                if x.saturating_add(w) > x1 {
                     break;
                 }
                 buf.set_cell(x, y0, Cell { ch, style });
+                x = x.saturating_add(w);
             }
         }
     }
@@ -148,5 +151,24 @@ mod tests {
                 height: 4
             }
         );
+    }
+
+    #[test]
+    fn title_wide_char_correct_placement() {
+        // "中a": '中' at x=1 (width 2), '\0' at x=2, 'a' at x=3
+        let mut buf = Buffer::empty(area(10, 3));
+        Block::new().title("中a").render(area(10, 3), &mut buf);
+        assert_eq!(buf.get_cell(1, 0).unwrap().ch, '中');
+        assert_eq!(buf.get_cell(2, 0).unwrap().ch, '\0');
+        assert_eq!(buf.get_cell(3, 0).unwrap().ch, 'a');
+    }
+
+    #[test]
+    fn title_wide_char_does_not_overflow_border() {
+        // width=4: x0=0, x1=3; "a中": 'a' at x=1 fits; '中' at x=2 needs 2 cols → x+w=4 > x1=3 → skipped
+        let mut buf = Buffer::empty(area(4, 3));
+        Block::new().title("a中").render(area(4, 3), &mut buf);
+        assert_eq!(buf.get_cell(1, 0).unwrap().ch, 'a');
+        assert_eq!(buf.get_cell(2, 0).unwrap().ch, '─'); // border, not '中'
     }
 }

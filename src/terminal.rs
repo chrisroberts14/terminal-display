@@ -177,6 +177,9 @@ fn render_diff(curr: &Buffer, prev: &Buffer) -> std::io::Result<()> {
     };
     let mut out = stdout();
     for (x, y, cell) in cells {
+        if cell.ch == '\0' {
+            continue;
+        }
         execute!(out, MoveTo(x, y))?;
         apply_style(&cell, &mut out)?;
         execute!(out, Print(cell.ch))?;
@@ -305,5 +308,32 @@ mod tests {
         let diffs = curr.diff(&prev).unwrap();
         assert_eq!(diffs.len(), 2);
         assert_eq!(diffs[0].2.ch, 'h');
+    }
+
+    #[test]
+    fn render_diff_skips_continuation_cells() {
+        // Confirms the precondition render_diff relies on: diff() includes the '\0'
+        // sentinel at x=1, and filtering it out leaves only the wide char at x=0.
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 4,
+            height: 1,
+        };
+        let prev = Buffer::empty(area);
+        let mut curr = Buffer::empty(area);
+        curr.set_cell(
+            0,
+            0,
+            crate::buffer::Cell {
+                ch: '中',
+                style: Style::default(),
+            },
+        );
+        let diffs = curr.diff(&prev).unwrap();
+        assert!(diffs.iter().any(|(x, _, c)| *x == 1 && c.ch == '\0'));
+        let emittable: Vec<_> = diffs.iter().filter(|(_, _, c)| c.ch != '\0').collect();
+        assert_eq!(emittable.len(), 1);
+        assert_eq!(emittable[0].0, 0);
     }
 }

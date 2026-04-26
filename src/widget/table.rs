@@ -1,6 +1,6 @@
 //! [`Table`] — renders rows of styled-span cells in a column grid.
 
-use crate::buffer::{Buffer, Cell};
+use crate::buffer::{Buffer, Cell, char_width};
 use crate::geometry::Rect;
 use crate::layout::{self, Constraint};
 use crate::style::{Color, Span, Style};
@@ -88,7 +88,16 @@ impl Widget for Table {
                 if i >= col_widths.len() {
                     break;
                 }
-                let clipped: String = header.chars().take(col_widths[i] as usize).collect();
+                let mut clipped = String::new();
+                let mut used = 0u16;
+                for ch in header.chars() {
+                    let w = char_width(ch);
+                    if used + w > col_widths[i] {
+                        break;
+                    }
+                    clipped.push(ch);
+                    used += w;
+                }
                 buf.set_str(col_xs[i], row_y, &clipped, header_style);
             }
             row_y += 1;
@@ -126,11 +135,12 @@ impl Widget for Table {
                             span.style
                         };
                         for ch in span.content.chars() {
-                            if x_cursor >= x_limit {
+                            let w = char_width(ch);
+                            if x_cursor.saturating_add(w) > x_limit {
                                 break 'outer;
                             }
                             buf.set_cell(x_cursor, row_y, Cell { ch, style });
-                            x_cursor += 1;
+                            x_cursor = x_cursor.saturating_add(w);
                         }
                     }
                 }
@@ -344,5 +354,29 @@ mod tests {
         assert_eq!(buf.get_cell(5, 3).unwrap().ch, 'N');
         assert_eq!(buf.get_cell(13, 3).unwrap().ch, 'R');
         assert_eq!(buf.get_cell(5, 4).unwrap().ch, 'A');
+    }
+
+    #[test]
+    fn wide_char_fits_exact_column_budget() {
+        // Fixed(2) column — '中' (display width 2) exactly fills the budget, must render.
+        let mut buf = Buffer::empty(area(4, 2));
+        Table::new(
+            vec![Constraint::Fixed(2), Constraint::Fill],
+            vec![Row::new(vec![vec![Span::raw("中")], vec![Span::raw("x")]])],
+        )
+        .render(area(4, 2), &mut buf);
+        assert_eq!(buf.get_cell(0, 0).unwrap().ch, '中');
+    }
+
+    #[test]
+    fn wide_char_skipped_when_column_too_narrow() {
+        // Fixed(1) column — '中' (display width 2) exceeds the budget, must not render.
+        let mut buf = Buffer::empty(area(4, 2));
+        Table::new(
+            vec![Constraint::Fixed(1), Constraint::Fill],
+            vec![Row::new(vec![vec![Span::raw("中")], vec![Span::raw("x")]])],
+        )
+        .render(area(4, 2), &mut buf);
+        assert_eq!(buf.get_cell(0, 0).unwrap().ch, ' '); // cell untouched
     }
 }

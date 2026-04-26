@@ -1,5 +1,6 @@
 //! Single-line styled text widget.
 
+use crate::buffer::char_width;
 use crate::widget::Widget;
 use crate::{Buffer, Cell, Rect, Span};
 
@@ -26,7 +27,8 @@ impl Widget for Text {
         let mut x = area.x;
         'outer: for span in &self.spans {
             for ch in span.content.chars() {
-                if x >= area.x + area.width {
+                let w = char_width(ch);
+                if x.saturating_add(w) > area.x + area.width {
                     break 'outer;
                 }
                 buf.set_cell(
@@ -37,14 +39,18 @@ impl Widget for Text {
                         style: span.style,
                     },
                 );
-                x += 1;
+                x = x.saturating_add(w);
             }
         }
     }
 
     fn natural_size(&self) -> Option<(u16, u16)> {
-        let total: usize = self.spans.iter().map(|s| s.content.chars().count()).sum();
-        Some((u16::try_from(total).unwrap_or(u16::MAX), 1))
+        let total = self
+            .spans
+            .iter()
+            .flat_map(|s| s.content.chars())
+            .fold(0u16, |acc, ch| acc.saturating_add(char_width(ch)));
+        Some((total, 1))
     }
 }
 
@@ -109,9 +115,48 @@ mod tests {
     }
 
     #[test]
-    fn natural_size_counts_unicode_chars_not_bytes() {
-        // "café" is 4 Unicode scalar values but 5 UTF-8 bytes
+    fn natural_size_counts_display_columns_not_bytes() {
+        // "café" is 4 Unicode scalar values (each width 1) but 5 UTF-8 bytes → 4 columns
         let t = Text::raw("café");
         assert_eq!(t.natural_size(), Some((4, 1)));
+    }
+
+    #[test]
+    fn wide_char_at_area_right_edge_is_clipped() {
+        // 2-wide area: 'a' fits at x=0, '中' (width 2) would need x=1..=2 but area ends at x=1 → skipped
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 2,
+            height: 1,
+        };
+        let mut buf = Buffer::empty(area);
+        Text::raw("a中").render(area, &mut buf);
+        assert_eq!(buf.get_cell(0, 0).unwrap().ch, 'a');
+        assert_eq!(buf.get_cell(1, 0).unwrap().ch, ' '); // wide char was not written
+    }
+
+    #[test]
+    fn natural_size_counts_display_columns() {
+        // "中文" = 2 CJK chars, each display width 2 → total 4 columns
+        let t = Text::raw("中文");
+        assert_eq!(t.natural_size(), Some((4, 1)));
+    }
+
+    #[test]
+    fn render_wide_text_correct_columns() {
+        // "a中b": 'a' at x=0, '中' at x=1 (width 2), 'b' at x=3 (key assertion — not x=2)
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 6,
+            height: 1,
+        };
+        let mut buf = Buffer::empty(area);
+        Text::raw("a中b").render(area, &mut buf);
+        assert_eq!(buf.get_cell(0, 0).unwrap().ch, 'a');
+        assert_eq!(buf.get_cell(1, 0).unwrap().ch, '中');
+        assert_eq!(buf.get_cell(2, 0).unwrap().ch, '\0'); // Buffer::set_cell continuation sentinel
+        assert_eq!(buf.get_cell(3, 0).unwrap().ch, 'b');
     }
 }

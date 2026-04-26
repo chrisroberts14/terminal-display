@@ -3,6 +3,16 @@
 use crate::geometry::Rect;
 use crate::style::Style;
 
+/// Returns the display column-width of `ch` for buffer advancement purposes (always 1 or 2).
+/// `None`-width characters (most control chars) default to 1 via `unwrap_or(1)`.
+/// Zero-width characters (combining marks, `'\0'`) are clamped to 1 via `.max(1)`
+/// so that buffer position arithmetic never stalls.
+pub(crate) fn char_width(ch: char) -> u16 {
+    unicode_width::UnicodeWidthChar::width(ch)
+        .unwrap_or(1)
+        .max(1) as u16
+}
+
 /// A single terminal character position: one glyph and its visual style.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Cell {
@@ -73,17 +83,30 @@ impl Buffer {
 
     /// Writes `cell` to absolute terminal position `(x, y)`.
     /// Out-of-bounds writes are silently ignored.
+    /// If `cell.ch` has display width 2, also writes a `'\0'` continuation sentinel at `(x+1, y)`.
     pub fn set_cell(&mut self, x: u16, y: u16, cell: Cell) {
         if let Some(index) = self.index(x, y) {
+            let cell_ch = cell.ch;
+            let cell_style = cell.style;
             self.cells[index] = cell;
+            if char_width(cell_ch) == 2
+                && let Some(cont_index) = self.index(x.saturating_add(1), y)
+            {
+                self.cells[cont_index] = Cell {
+                    ch: '\0',
+                    style: cell_style,
+                };
+            }
         }
     }
 
     /// Writes each character of `s` left-to-right starting at `(x, y)`, all
-    /// sharing the same `style`. Out-of-bounds characters are silently ignored.
-    pub fn set_str(&mut self, x: u16, y: u16, s: &str, style: Style) {
-        for (i, ch) in s.chars().enumerate() {
-            self.set_cell(x + i as u16, y, Cell { ch, style });
+    /// sharing the same `style`. Advances `x` by each character's display width.
+    /// Out-of-bounds characters are silently ignored.
+    pub fn set_str(&mut self, mut x: u16, y: u16, s: &str, style: Style) {
+        for ch in s.chars() {
+            self.set_cell(x, y, Cell { ch, style });
+            x = x.saturating_add(char_width(ch));
         }
     }
 
@@ -213,5 +236,80 @@ mod tests {
         assert_eq!(buf.get_cell(0, 0).unwrap().ch, 'h');
         assert_eq!(buf.get_cell(1, 0).unwrap().ch, 'i');
         assert_eq!(buf.get_cell(0, 0).unwrap().style.fg, Some(Color::Red));
+    }
+
+    #[test]
+    fn set_cell_wide_char_writes_continuation() {
+        // '中' has display width 2; writing it at (0,0) must auto-fill (1,0) with '\0'.
+        let mut buf = make_buf(4, 1);
+        buf.set_cell(
+            0,
+            0,
+            Cell {
+                ch: '中',
+                style: Style::default(),
+            },
+        );
+        assert_eq!(buf.get_cell(0, 0).unwrap().ch, '中');
+        assert_eq!(buf.get_cell(1, 0).unwrap().ch, '\0');
+        assert_eq!(buf.get_cell(2, 0).unwrap().ch, ' '); // untouched
+    }
+
+    #[test]
+    fn set_str_wide_char_advances_correctly() {
+        // "中a": '中' at column 0 (width 2), 'a' at column 2 (not column 1).
+        let mut buf = make_buf(5, 1);
+        buf.set_str(0, 0, "中a", Style::default());
+        assert_eq!(buf.get_cell(0, 0).unwrap().ch, '中');
+        assert_eq!(buf.get_cell(1, 0).unwrap().ch, '\0');
+        assert_eq!(buf.get_cell(2, 0).unwrap().ch, 'a');
+    }
+
+    #[test]
+    fn diff_shows_continuation_cell_for_wide_char() {
+        // buffer::diff() includes the '\0' cell — render_diff must skip it.
+        let area = Rect {
+            x: 0,
+            y: 0,
+            width: 4,
+            height: 1,
+        };
+        let prev = Buffer::empty(area);
+        let mut curr = Buffer::empty(area);
+        let red = Style {
+            fg: Some(Color::Red),
+            ..Style::default()
+        };
+        curr.set_cell(
+            0,
+            0,
+            Cell {
+                ch: '中',
+                style: red,
+            },
+        );
+        let diffs = curr.diff(&prev).unwrap();
+        let cont = diffs
+            .iter()
+            .find(|(x, _, _)| *x == 1)
+            .expect("no continuation cell in diff");
+        assert_eq!(cont.2.ch, '\0');
+        assert_eq!(cont.2.style.fg, Some(Color::Red)); // style is copied from the wide cell
+    }
+
+    #[test]
+    fn set_cell_wide_char_at_right_edge_does_not_panic_or_write_outside() {
+        // '中' at x=3 in a width=4 buffer: continuation at x=4 is out-of-bounds, silently dropped.
+        let mut buf = make_buf(4, 1);
+        buf.set_cell(
+            3,
+            0,
+            Cell {
+                ch: '中',
+                style: Style::default(),
+            },
+        );
+        assert_eq!(buf.get_cell(3, 0).unwrap().ch, '中');
+        assert!(buf.get_cell(4, 0).is_none());
     }
 }
