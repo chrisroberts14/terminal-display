@@ -91,6 +91,7 @@ fn main() {
 | `Padding::axes(h, v, child)` | Insets with separate horizontal / vertical amounts |
 | `Padding::new(t, r, b, l, child)` | Insets with per-side control |
 | `Popup::new(background, overlay)` | Renders a background with an overlay centred on top |
+| `Table::new(constraints, rows)` | Column grid with optional headers and selected-row highlight |
 
 `Centered` and `Popup` work with any widget that implements `natural_size()` — `Spinner`, `Text`, `Bordered`, and `Padding` all do. Composition is additive:
 

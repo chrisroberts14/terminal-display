@@ -38,5 +38,5 @@ pub use style::{Color, Span, Style};
 pub use terminal::{Frame, Terminal, TerminalHandle};
 pub use widget::{
     Block, Bordered, BoxedWidget, Centered, Divider, Gauge, HStack, Padding, Popup, ProgressBar,
-    Spinner, SpinnerStyle, Text, VStack, Widget, WidgetExt, boxed,
+    Row, Spinner, SpinnerStyle, Table, Text, VStack, Widget, WidgetExt, boxed,
 };

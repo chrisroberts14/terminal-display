@@ -14,6 +14,7 @@ pub(crate) mod popup;
 pub(crate) mod progress_bar;
 pub(crate) mod spinner;
 pub(crate) mod stack;
+pub(crate) mod table;
 pub(crate) mod text;
 
 pub use block::Block;
@@ -26,6 +27,7 @@ pub use popup::Popup;
 pub use progress_bar::ProgressBar;
 pub use spinner::{Spinner, SpinnerStyle};
 pub use stack::{BoxedWidget, HStack, VStack, boxed};
+pub use table::{Row, Table};
 pub use text::Text;
 
 /// The core rendering trait. Implement this to create a custom widget.
