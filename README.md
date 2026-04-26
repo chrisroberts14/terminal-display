@@ -85,9 +85,14 @@ fn main() {
 | `Centered { child }` | Any widget centred in its allocated area |
 | `Spinner::new(style, style!)` | Animated loading indicator |
 | `ProgressBar::new(value, total)` | Filled progress bar with percentage |
+| `Gauge::new(value)` | Elliptical ring gauge filling clockwise from the top |
 | `Divider` | Horizontal or vertical separator line |
+| `Padding::all(n, child)` | Insets a child widget's render area uniformly |
+| `Padding::axes(h, v, child)` | Insets with separate horizontal / vertical amounts |
+| `Padding::new(t, r, b, l, child)` | Insets with per-side control |
+| `Popup::new(background, overlay)` | Renders a background with an overlay centred on top |
 
-`Centered` works with any widget that implements `natural_size()` — `Spinner`, `Text`, and `Bordered` all do. Composition is additive:
+`Centered` and `Popup` work with any widget that implements `natural_size()` — `Spinner`, `Text`, `Bordered`, and `Padding` all do. Composition is additive:
 
 ```rust
 // A 3×3 bordered spinner centred in the terminal
