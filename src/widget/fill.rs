@@ -29,3 +29,26 @@ impl Widget for Fill {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{style, Color};
+    use super::*;
+
+    fn area(w: u16, h: u16) -> Rect {
+        Rect {
+            x: 0,
+            y: 0,
+            width: w,
+            height: h,
+        }
+    }
+
+    #[test]
+    fn test_colour_is_rendered() {
+        let mut buffer = Buffer::empty(area(1, 1));
+        Fill::new(style!(bg = Color::Black)).render(area(1, 1), &mut buffer);
+        assert_eq!(buffer.get_cell(0, 0).unwrap().ch, ' ');
+        assert_eq!(buffer.get_cell(0, 0).unwrap().style, style!(bg = Color::Black));
+    }
+}
