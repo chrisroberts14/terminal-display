@@ -1,6 +1,9 @@
 use std::thread;
 use std::time::Duration;
-use terminal_display::{style, Block, Bordered, Buffer, Centered, Color, Constraint, Fill, HStack, Rect, Terminal, WidgetExt};
+use terminal_display::{
+    Block, Bordered, Buffer, Centered, Color, Constraint, Fill, HStack, Rect, Terminal, WidgetExt,
+    style,
+};
 
 fn hsv_to_rgb(h: f64, s: f64, v: f64) -> (u8, u8, u8) {
     let c = v * s;
@@ -44,11 +47,14 @@ fn main() {
         frame.render(
             Bordered::new(
                 Block::new().title("Rainbow"),
-                HStack::new(rgb_values.iter().map(|&(r, g, b)| {
-                    Fill::new(style!(bg = Color::Rgb(r, g, b))).fixed(1)
-                }).collect())
+                HStack::new(
+                    rgb_values
+                        .iter()
+                        .map(|&(r, g, b)| Fill::new(style!(bg = Color::Rgb(r, g, b))).fixed(1))
+                        .collect(),
+                ),
             ),
-            area
+            area,
         )
     });
 

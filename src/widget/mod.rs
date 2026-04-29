@@ -8,6 +8,7 @@ pub(crate) mod block;
 pub(crate) mod bordered;
 pub(crate) mod centered;
 pub(crate) mod divider;
+pub(crate) mod fill;
 pub(crate) mod gauge;
 pub(crate) mod padding;
 pub(crate) mod popup;
@@ -16,12 +17,12 @@ pub(crate) mod spinner;
 pub(crate) mod stack;
 pub(crate) mod table;
 pub(crate) mod text;
-pub(crate) mod fill;
 
 pub use block::Block;
 pub use bordered::Bordered;
 pub use centered::Centered;
 pub use divider::Divider;
+pub use fill::Fill;
 pub use gauge::Gauge;
 pub use padding::Padding;
 pub use popup::Popup;
@@ -30,7 +31,6 @@ pub use spinner::{Spinner, SpinnerStyle};
 pub use stack::{BoxedWidget, HStack, VStack, boxed};
 pub use table::{Row, Table};
 pub use text::Text;
-pub use fill::Fill;
 
 /// The core rendering trait. Implement this to create a custom widget.
 ///
