@@ -289,7 +289,6 @@ mod tests {
     use crate::geometry::Rect;
     use crate::style::Style;
     use crate::widget::text::Text;
-    use std::io::stderr;
 
     #[test]
     fn frame_area_matches_constructed_size() {
