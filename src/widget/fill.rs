@@ -32,8 +32,8 @@ impl Widget for Fill {
 
 #[cfg(test)]
 mod tests {
-    use crate::{style, Color};
     use super::*;
+    use crate::{Color, style};
 
     fn area(w: u16, h: u16) -> Rect {
         Rect {
@@ -49,6 +49,9 @@ mod tests {
         let mut buffer = Buffer::empty(area(1, 1));
         Fill::new(style!(bg = Color::Black)).render(area(1, 1), &mut buffer);
         assert_eq!(buffer.get_cell(0, 0).unwrap().ch, ' ');
-        assert_eq!(buffer.get_cell(0, 0).unwrap().style, style!(bg = Color::Black));
+        assert_eq!(
+            buffer.get_cell(0, 0).unwrap().style,
+            style!(bg = Color::Black)
+        );
     }
 }
