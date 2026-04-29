@@ -13,7 +13,7 @@ use crossterm::style::{
 use crossterm::terminal::{
     Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
-use std::io::{Write, stdout};
+use std::io::{Stdout, Write, stdout};
 use std::sync::{Arc, mpsc};
 use std::thread;
 use std::time::Duration;
@@ -68,24 +68,45 @@ impl Frame {
 ///
 /// Create with [`Terminal::new`], then immediately call [`Terminal::run`] to transfer
 /// ownership to the background threads and receive a [`TerminalHandle`].
-pub struct Terminal {
+pub struct Terminal<W: Write> {
     area: Rect,
+    writer: W,
 }
 
-impl Terminal {
-    /// Initialises the terminal: enables raw mode, enters the alternate screen, and hides
+impl Terminal<Stdout> {
+    /// Initialises the terminal on stdout: enables raw mode, enters the alternate screen, and hides
     /// the cursor. Returns an error if the terminal cannot be configured.
-    pub fn new() -> std::io::Result<Terminal> {
+    pub fn new() -> std::io::Result<Self> {
         let (width, height) = crossterm::terminal::size()?;
         enable_raw_mode()?;
         execute!(stdout(), EnterAlternateScreen, Hide)?;
-        Ok(Terminal {
+        Ok(Self {
             area: Rect {
                 x: 0,
                 y: 0,
                 width,
                 height,
             },
+            writer: stdout(),
+        })
+    }
+}
+
+impl<W: Write> Terminal<W> {
+    /// Initialises the terminal on a given writer: enables raw mode, enters the alternate screen,
+    /// and hides the cursor. Returns an error if the terminal cannot be configured.
+    pub fn with_writer(mut writer: W) -> std::io::Result<Self> {
+        let (width, height) = crossterm::terminal::size()?;
+        enable_raw_mode()?;
+        execute!(writer, EnterAlternateScreen, Hide)?;
+        Ok(Self {
+            area: Rect {
+                x: 0,
+                y: 0,
+                width,
+                height,
+            },
+            writer,
         })
     }
 
@@ -268,6 +289,7 @@ mod tests {
     use crate::geometry::Rect;
     use crate::style::Style;
     use crate::widget::text::Text;
+    use std::io::stderr;
 
     #[test]
     fn frame_area_matches_constructed_size() {

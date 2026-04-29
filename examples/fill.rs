@@ -1,36 +1,24 @@
+//! Example of using the Fill widget
+//! Displays a rainbow colour rectangle on the terminal
+
 use std::thread;
 use std::time::Duration;
-use terminal_display::{Block, Bordered, Color, Fill, HStack, Terminal, WidgetExt, style};
+use terminal_display::{Block, Bordered, Color, Fill, HStack, Terminal, VStack, WidgetExt, style};
 
-fn hsv_to_rgb(h: f64, s: f64, v: f64) -> (u8, u8, u8) {
-    let c = v * s;
-    let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
-    let m = v - c;
-
-    let (r1, g1, b1) = match h as u32 {
-        0..=59 => (c, x, 0.0),
-        60..=119 => (x, c, 0.0),
-        120..=179 => (0.0, c, x),
-        180..=239 => (0.0, x, c),
-        240..=299 => (x, 0.0, c),
-        300..=359 => (c, 0.0, x),
-        _ => (0.0, 0.0, 0.0),
-    };
-
-    (
-        ((r1 + m) * 255.0) as u8,
-        ((g1 + m) * 255.0) as u8,
-        ((b1 + m) * 255.0) as u8,
-    )
-}
-
-fn rainbow(n: usize) -> Vec<(u8, u8, u8)> {
-    (0..n)
-        .map(|i| {
-            let hue = (i as f64 / n as f64) * 360.0;
-            hsv_to_rgb(hue, 1.0, 1.0)
-        })
-        .collect()
+/// Construct a grid of RGB values
+pub fn rgb_grid(width: usize, height: usize) -> Vec<Vec<(u8, u8, u8)>> {
+    let mut grid = Vec::with_capacity(height);
+    for y in 0..height {
+        let mut row = Vec::with_capacity(width);
+        for x in 0..width {
+            let r = (x as f32 / (width - 1).max(1) as f32) * 255.0;
+            let g = (y as f32 / (height - 1).max(1) as f32) * 255.0;
+            let b = 128.0;
+            row.push((r as u8, g as u8, b as u8));
+        }
+        grid.push(row);
+    }
+    grid
 }
 
 fn main() {
@@ -38,16 +26,23 @@ fn main() {
     let handle = terminal.run();
 
     handle.render(|frame| {
-        // Colours
-        let rgb_values = rainbow(150);
         let area = frame.area();
         frame.render(
             Bordered::new(
                 Block::new().title("Rainbow"),
-                HStack::new(
-                    rgb_values
-                        .iter()
-                        .map(|&(r, g, b)| Fill::new(style!(bg = Color::Rgb(r, g, b))).fixed(1))
+                VStack::new(
+                    rgb_grid(100, 100)
+                        .into_iter()
+                        .map(|row| {
+                            HStack::new(
+                                row.into_iter()
+                                    .map(|(r, g, b)| {
+                                        Fill::new(style!(bg = Color::Rgb(r, g, b))).fixed(1)
+                                    })
+                                    .collect(),
+                            )
+                            .fixed(1)
+                        })
                         .collect(),
                 ),
             ),
