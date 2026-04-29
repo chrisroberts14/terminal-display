@@ -1,9 +1,6 @@
 use std::thread;
 use std::time::Duration;
-use terminal_display::{
-    Block, Bordered, Buffer, Centered, Color, Constraint, Fill, HStack, Rect, Terminal, WidgetExt,
-    style,
-};
+use terminal_display::{Block, Bordered, Color, Fill, HStack, Terminal, WidgetExt, style};
 
 fn hsv_to_rgb(h: f64, s: f64, v: f64) -> (u8, u8, u8) {
     let c = v * s;
